@@ -42,7 +42,7 @@ defmodule Executive.Type do
     module names.
   - Types can be parametrized by wrapping them in a `{type, params}` tuple.
   """
-  @type t() :: alias() | module() | {alias(), params()} | {module(), params()}
+  @type t() :: alias() | module()
 
   @doc """
   Each type should provide a friendly name.
@@ -108,107 +108,12 @@ defmodule Executive.Type do
   """
   @callback spec(params()) :: Macro.t()
 
-  @doc """
-  Get `type`'s friendly name.
-
-  This function resolves aliases and parametrization before dispatching to
-  `type`'s implementation of `c:name/1`.
-
-  ## Examples
-  This function works with full type names.
-
-      iex> name(Executive.Types.Boolean)
-      "boolean"
-
-  This function also takes aliases for built-in types.
-
-      iex> name(:count)
-      "count"
-
-  """
-  @spec name(t()) :: IO.chardata()
-  def name(type) do
-    {type, params} = normalize(type)
-    type.name(params)
-  end
-
-  @doc """
-  Parse `value` using `type`.
-
-  This function resolves aliases and parametrization before dispatching to
-  `type`'s implementation of `c:parse/2`.
-
-  ## Examples
-  This function works with full type names.
-
-      iex> parse(0.25, Executive.Types.Float)
-      {:ok, 0.25}
-
-  This function also takes aliases for built-in types.
-
-      iex> parse(7, :integer)
-      {:ok, 7}
-
-  """
-  @spec parse(raw_value(), t()) :: {:ok, term()} | {:error, IO.chardata()}
-  def parse(raw, type) do
-    {type, params} = normalize(type)
-    type.parse(raw, params)
-  end
-
-  @doc """
-  Get `type`'s raw type.
-
-  This function resolves aliases and parametrization before dispatching to
-  `type`'s implementation of `c:raw_type/1`.
-
-  ## Examples
-  This function works with full type names.
-
-      iex> raw_type(Executive.Types.String)
-      :string
-
-  This function also takes aliases for built-in types.
-
-      iex raw_type(:count)
-      :count
-
-  """
-  @spec raw_type(t()) :: raw_type()
-  def raw_type(type) do
-    {type, params} = normalize(type)
-    type.raw_type(params)
-  end
-
-  @doc """
-  Get `type`'s typespec for refined values.
-
-  This function resolves aliases and parametrization before dispatching to
-  `type`'s implementation of `c:spec/1`.
-  """
-  @spec spec(t()) :: Macro.t()
-  def spec(type) do
-    {type, params} = normalize(type)
-    type.spec(params)
-  end
-
-  @spec normalize(t()) :: {module(), params()}
-  defp normalize(type)
-
-  defp normalize(type) when is_atom(type) do
-    unalias(type, [])
-  end
-
-  defp normalize({type, params}) when is_atom(type) do
-    unalias(type, params)
-  end
-
-  @spec unalias(alias() | module(), params()) :: {module(), params()}
-  defp unalias(type, params)
-  defp unalias(:boolean, params), do: {Executive.Types.Boolean, params}
-  defp unalias(:count, params), do: {Executive.Types.Count, params}
-  defp unalias(:float, params), do: {Executive.Types.Float, params}
-  defp unalias(:integer, params), do: {Executive.Types.Integer, params}
-  defp unalias(:string, params), do: {Executive.Types.String, params}
-  defp unalias(module, params), do: {module, params}
+  @spec unalias(t(), params()) :: {module(), params()}
+  def unalias(type, params)
+  def unalias(:boolean, params), do: {Executive.Types.Boolean, params}
+  def unalias(:count, params), do: {Executive.Types.Count, params}
+  def unalias(:float, params), do: {Executive.Types.Float, params}
+  def unalias(:integer, params), do: {Executive.Types.Integer, params}
+  def unalias(:string, params), do: {Executive.Types.String, params}
+  def unalias(module, params) when is_atom(module), do: {module, params}
 end
