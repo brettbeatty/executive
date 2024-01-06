@@ -98,7 +98,7 @@
           #
           ## Readability Checks
           #
-          {Credo.Check.Readability.AliasAs, []},
+          {Credo.Check.Readability.AliasAs, false},
           {Credo.Check.Readability.AliasOrder, []},
           {Credo.Check.Readability.BlockPipe, []},
           {Credo.Check.Readability.FunctionNames, []},
