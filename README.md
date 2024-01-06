@@ -1,6 +1,6 @@
 # Executive
 
-**TODO: Add description**
+Executive accelerates mix task development.
 
 ## Installation
 
