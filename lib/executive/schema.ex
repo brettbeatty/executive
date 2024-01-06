@@ -2,7 +2,9 @@ defmodule Executive.Schema do
   @moduledoc """
   A schema declares options that can be parsed from mix task args.
   """
+  alias Executive.ParseError
   alias Executive.Schema.Option
+  alias Executive.Type
 
   @typedoc """
   Mix tasks receive a list of strings that may have switches.
@@ -17,6 +19,8 @@ defmodule Executive.Schema do
   """
   @type t() :: %__MODULE__{options: %{atom() => Option.t()}}
 
+  @typep switch_errors() :: [{String.t(), IO.chardata()}]
+
   defstruct [:options]
 
   @doc """
@@ -25,6 +29,65 @@ defmodule Executive.Schema do
   @spec new() :: t()
   def new do
     %__MODULE__{options: %{}}
+  end
+
+  @doc """
+  Parse `argv` into the structure described in `schema`.
+  """
+  @spec parse(t(), argv()) :: {:ok, argv(), keyword()} | {:error, ParseError.t()}
+  def parse(schema, argv) do
+    {raw_opts, new_argv, raw_errors} = parse_raw_opts(argv, schema)
+
+    case raw_errors do
+      [] ->
+        {:ok, new_argv, raw_opts}
+
+      switch_errors ->
+        {:error, ParseError.exception(switch_errors)}
+    end
+  end
+
+  @spec parse_raw_opts(argv(), t()) :: {keyword(Type.raw_value()), argv(), switch_errors()}
+  defp parse_raw_opts(argv, schema) do
+    switches = for option <- options(schema), do: {option.name, Option.raw_type(option)}
+    aliases = for option <- options(schema), alias <- option.aliases, do: {alias, option.name}
+
+    {opts, new_argv, invalid} = OptionParser.parse(argv, strict: switches, aliases: aliases)
+    {opts, new_argv, format_raw_errors(schema, invalid)}
+  end
+
+  @spec options(t()) :: Enumerable.t(Option.t())
+  defp options(schema) do
+    %__MODULE__{options: options} = schema
+    Stream.map(options, fn {_name, option} -> option end)
+  end
+
+  @spec format_raw_errors(t(), [{String.t(), String.t() | nil}]) :: switch_errors()
+  defp format_raw_errors(schema, invalid_switches) do
+    switches = build_switch_map(schema)
+
+    for {switch, value} <- invalid_switches do
+      error =
+        case Map.fetch(switches, switch) do
+          {:ok, option} when is_binary(value) ->
+            ["Expected type ", Option.type_name(option), ", got ", inspect(value)]
+
+          {:ok, option} when is_nil(value) ->
+            ["Missing argument of type ", Option.type_name(option)]
+
+          :error ->
+            "Unknown option"
+        end
+
+      {switch, error}
+    end
+  end
+
+  @spec build_switch_map(t()) :: %{String.t() => Option.t()}
+  defp build_switch_map(schema) do
+    options = options(schema)
+    switches = for option <- options, into: %{}, do: {Option.switch(option), option}
+    for option <- options, alias <- option.aliases, into: switches, do: {"-#{alias}", option}
   end
 
   @doc """
