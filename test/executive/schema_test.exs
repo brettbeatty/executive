@@ -3,6 +3,7 @@ defmodule Executive.SchemaTest do
   alias Executive.ParseError
   alias Executive.Schema
   alias Executive.Schema.Option
+  doctest Schema
 
   describe "new/0" do
     test "creates new schema" do
@@ -36,6 +37,15 @@ defmodule Executive.SchemaTest do
         |> Schema.parse(["--my-option", "--my-option", "--my-option"])
 
       assert result == {:ok, [], my_option: 3}
+    end
+
+    test "handles enum switches" do
+      result =
+        Schema.new()
+        |> Schema.put_option(:my_option, {:enum, [:one, :two, :three]})
+        |> Schema.parse(["--my-option", "two"])
+
+      assert result == {:ok, [], my_option: :two}
     end
 
     test "handles float switches" do
@@ -120,6 +130,22 @@ defmodule Executive.SchemaTest do
       assert {:error, error} = result
       assert Exception.message(error) == expected_message
     end
+
+    test "errors when switch fails parsing by type" do
+      result =
+        Schema.new()
+        |> Schema.put_option(:my_option, {:enum, [:duck, :goose]})
+        |> Schema.parse(["--my-option", "swan"])
+
+      expected_message =
+        String.trim("""
+        1 error found!
+        --my-option : Expected one of (duck, goose), got "swan"
+        """)
+
+      assert {:error, error} = result
+      assert Exception.message(error) == expected_message
+    end
   end
 
   describe "parse!/2" do
@@ -136,17 +162,19 @@ defmodule Executive.SchemaTest do
     test "raises if parsing fails" do
       expected_message =
         String.trim("""
-        3 errors found!
+        4 errors found!
         --my-option : Missing argument of type string
         --another-option : Expected type integer, got "not an integer"
         -b : Unknown option
+        --one-more-option : Expected one of (x, y, z), got "w"
         """)
 
       assert_raise ParseError, expected_message, fn ->
         Schema.new()
         |> Schema.put_option(:my_option, :string)
         |> Schema.put_option(:another_option, :integer, alias: :a)
-        |> Schema.parse!(["--my-option", "-a", "not an integer", "-b", "4"])
+        |> Schema.put_option(:one_more_option, {:enum, [:x, :y, :z]}, alias: :o)
+        |> Schema.parse!(["--my-option", "-a", "not an integer", "-b", "4", "-o", "w"])
       end
     end
   end

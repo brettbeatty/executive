@@ -33,22 +33,44 @@ defmodule Executive.Schema do
 
   @doc """
   Parse `argv` into the structure described in `schema`.
+
+  When parsing is successful it returns `{:ok, new_argv, opts}`.
+
+      iex> Schema.new()
+      ...> |> Schema.put_option(:my_integer, :integer)
+      ...> |> Schema.put_option(:my_string, :string, alias: :s)
+      ...> |> Schema.put_option(:my_count, :count, alias: :c)
+      ...> |> Schema.parse(["-c", "a", "-s", "bravo", "-c", "--my-integer", "7"])
+      {:ok, ["a"], [my_count: 2, my_string: "bravo", my_integer: 7]}
+
+  When parsing fails it raises an `Executive.ParseError`.
+
+      iex> {:error, error} =
+      ...>   Schema.new()
+      ...>   |> Schema.put_option(:my_enum, {:enum, [:a, :b, :c]})
+      ...>   |> Schema.parse(["--my-enum", "d", "--another-switch", "7"])
+      iex> raise error
+      ** (Executive.ParseError) 2 errors found!
+      --another-switch : Unknown option
+      --my-enum : Expected one of (a, b, c), got "d"
+
   """
   @spec parse(t(), argv()) :: {:ok, argv(), keyword()} | {:error, ParseError.t()}
   def parse(schema, argv) do
-    {raw_opts, new_argv, raw_errors} = parse_raw_opts(argv, schema)
+    {raw_opts, new_argv, raw_errors} = parse_raw_opts(schema, argv)
+    {refined_opts, refined_errors} = refine_opts(schema, raw_opts)
 
-    case raw_errors do
+    case raw_errors ++ refined_errors do
       [] ->
-        {:ok, new_argv, raw_opts}
+        {:ok, new_argv, refined_opts}
 
       switch_errors ->
         {:error, ParseError.exception(switch_errors)}
     end
   end
 
-  @spec parse_raw_opts(argv(), t()) :: {keyword(Type.raw_value()), argv(), switch_errors()}
-  defp parse_raw_opts(argv, schema) do
+  @spec parse_raw_opts(t(), argv()) :: {keyword(Type.raw_value()), argv(), switch_errors()}
+  defp parse_raw_opts(schema, argv) do
     switches = for option <- options(schema), do: {option.name, Option.raw_type(option)}
     aliases = for option <- options(schema), alias <- option.aliases, do: {alias, option.name}
 
@@ -88,12 +110,44 @@ defmodule Executive.Schema do
     for option <- options, alias <- option.aliases, into: switches, do: {"-#{alias}", option}
   end
 
+  @spec refine_opts(t(), keyword(Type.raw_value())) :: {keyword(), switch_errors()}
+  defp refine_opts(schema, raw_opts) do
+    for {name, raw} <- Enum.reverse(raw_opts), reduce: {[], []} do
+      {refined_opts, errors} ->
+        option = Map.fetch!(schema.options, name)
+
+        case Option.parse(option, raw) do
+          {:ok, refined} ->
+            {[{name, refined} | refined_opts], errors}
+
+          {:error, message} ->
+            {refined_opts, [{Option.switch(option), message} | errors]}
+        end
+    end
+  end
+
   @doc """
   Assertive companion to `parse/2`.
 
   When parsing is successful it returns `{new_argv, opts}`.
 
+      iex> Schema.new()
+      ...> |> Schema.put_option(:my_enum, {:enum, [:a, :b, :c]}, alias: :e)
+      ...> |> Schema.put_option(:my_integer, :integer)
+      ...> |> Schema.parse!(["some", "--my-integer", "29", "args", "-e", "c"])
+      {["some", "args"], [my_integer: 29, my_enum: :c]}
+
   When parsing fails it raises an `Executive.ParseError`.
+
+      iex> Schema.new()
+      ...> |> Schema.put_option(:my_count, :count, alias: [:c, :k])
+      ...> |> Schema.put_option(:my_string, :string, alias: :s)
+      ...> |> Schema.put_option(:my_float, :float, alias: :f)
+      ...> |> Schema.parse!(["more", "-c", "--my-string", "-f", "not a float"])
+      ** (Executive.ParseError) 2 errors found!
+      --my-string : Missing argument of type string
+      --my-float : Expected type float, got "not a float"
+
   """
   @spec parse!(t(), argv()) :: {argv(), keyword()}
   def parse!(schema, argv) do

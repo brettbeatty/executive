@@ -1,6 +1,7 @@
 defmodule Executive.Types.EnumTest do
   use ExUnit.Case, async: true
   alias Executive.Types.Enum, as: EnumType
+  doctest EnumType
 
   describe "name/1" do
     test "enumerates allowed values" do
