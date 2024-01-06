@@ -10,7 +10,7 @@ defmodule Executive.Types.CountTest do
 
   describe "parse/2" do
     test "positive integer" do
-      assert CountType.parse(3, []) == {:ok, 3}
+      assert CountType.parse([], 3) == {:ok, 3}
     end
   end
 

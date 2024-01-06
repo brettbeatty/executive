@@ -10,7 +10,7 @@ defmodule Executive.Types.StringTest do
 
   describe "parse/2" do
     test "string" do
-      assert StringType.parse("my string", []) == {:ok, "my string"}
+      assert StringType.parse([], "my string") == {:ok, "my string"}
     end
   end
 

@@ -43,7 +43,7 @@ defmodule Executive.Schema.Option do
   @spec parse(t(), Type.raw_value()) :: {:ok, term()} | {:error, IO.chardata()}
   def parse(option, raw) do
     %__MODULE__{type: type, type_params: params} = option
-    type.parse(raw, params)
+    type.parse(params, raw)
   end
 
   @doc """

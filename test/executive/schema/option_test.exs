@@ -18,7 +18,7 @@ defmodule Executive.Schema.OptionTest do
     end
 
     @impl Executive.Type
-    def parse(raw, ref) do
+    def parse(ref, raw) do
       send(self(), {ref, raw: raw})
       receive!(ref)
     end

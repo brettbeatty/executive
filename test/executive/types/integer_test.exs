@@ -10,7 +10,7 @@ defmodule Executive.Types.IntegerTest do
 
   describe "parse/2" do
     test "integer" do
-      assert IntegerType.parse(12, []) == {:ok, 12}
+      assert IntegerType.parse([], 12) == {:ok, 12}
     end
   end
 

@@ -66,7 +66,7 @@ defmodule Executive.Type do
   but the error messages are compiled into a larger string, so individual
   messages can be any chardata.
   """
-  @callback parse(raw_value(), params()) :: {:ok, term()} | {:error, IO.chardata()}
+  @callback parse(params(), raw_value()) :: {:ok, term()} | {:error, IO.chardata()}
 
   @doc """
   Each type has an underlying `OptionParser` type.

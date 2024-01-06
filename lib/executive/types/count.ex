@@ -14,7 +14,7 @@ defmodule Executive.Types.Count do
   end
 
   @impl Executive.Type
-  def parse(raw, _params) when is_integer(raw) and raw > 0 do
+  def parse(_params, raw) when is_integer(raw) and raw > 0 do
     {:ok, raw}
   end
 
