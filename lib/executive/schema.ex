@@ -67,19 +67,17 @@ defmodule Executive.Schema do
     switches = build_switch_map(schema)
 
     for {switch, value} <- invalid_switches do
-      error =
-        case Map.fetch(switches, switch) do
-          {:ok, option} when is_binary(value) ->
-            ["Expected type ", Option.type_name(option), ", got ", inspect(value)]
+      case Map.fetch(switches, switch) do
+        {:ok, option} when is_binary(value) ->
+          {Option.switch(option),
+           ["Expected type ", Option.type_name(option), ", got ", inspect(value)]}
 
-          {:ok, option} when is_nil(value) ->
-            ["Missing argument of type ", Option.type_name(option)]
+        {:ok, option} when is_nil(value) ->
+          {Option.switch(option), ["Missing argument of type ", Option.type_name(option)]}
 
-          :error ->
-            "Unknown option"
-        end
-
-      {switch, error}
+        :error ->
+          {switch, "Unknown option"}
+      end
     end
   end
 
@@ -88,6 +86,24 @@ defmodule Executive.Schema do
     options = options(schema)
     switches = for option <- options, into: %{}, do: {Option.switch(option), option}
     for option <- options, alias <- option.aliases, into: switches, do: {"-#{alias}", option}
+  end
+
+  @doc """
+  Assertive companion to `parse/2`.
+
+  When parsing is successful it returns `{new_argv, opts}`.
+
+  When parsing fails it raises an `Executive.ParseError`.
+  """
+  @spec parse!(t(), argv()) :: {argv(), keyword()}
+  def parse!(schema, argv) do
+    case parse(schema, argv) do
+      {:ok, new_argv, opts} ->
+        {new_argv, opts}
+
+      {:error, error} ->
+        raise error
+    end
   end
 
   @doc """

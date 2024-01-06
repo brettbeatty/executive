@@ -1,5 +1,6 @@
 defmodule Executive.SchemaTest do
   use ExUnit.Case, async: true
+  alias Executive.ParseError
   alias Executive.Schema
   alias Executive.Schema.Option
 
@@ -118,6 +119,35 @@ defmodule Executive.SchemaTest do
 
       assert {:error, error} = result
       assert Exception.message(error) == expected_message
+    end
+  end
+
+  describe "parse!/2" do
+    test "parses options from argv" do
+      result =
+        Schema.new()
+        |> Schema.put_option(:my_option, :string)
+        |> Schema.put_option(:another_option, :integer, alias: :a)
+        |> Schema.parse!(["some", "args", "--my-option", "my string", "-a", "5"])
+
+      assert result == {["some", "args"], my_option: "my string", another_option: 5}
+    end
+
+    test "raises if parsing fails" do
+      expected_message =
+        String.trim("""
+        3 errors found!
+        --my-option : Missing argument of type string
+        --another-option : Expected type integer, got "not an integer"
+        -b : Unknown option
+        """)
+
+      assert_raise ParseError, expected_message, fn ->
+        Schema.new()
+        |> Schema.put_option(:my_option, :string)
+        |> Schema.put_option(:another_option, :integer, alias: :a)
+        |> Schema.parse!(["--my-option", "-a", "not an integer", "-b", "4"])
+      end
     end
   end
 
