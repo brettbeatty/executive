@@ -112,6 +112,7 @@ defmodule Executive.Type do
   def unalias(type, params)
   def unalias(:boolean, params), do: {Executive.Types.Boolean, params}
   def unalias(:count, params), do: {Executive.Types.Count, params}
+  def unalias(:enum, params), do: {Executive.Types.Enum, params}
   def unalias(:float, params), do: {Executive.Types.Float, params}
   def unalias(:integer, params), do: {Executive.Types.Integer, params}
   def unalias(:string, params), do: {Executive.Types.String, params}
