@@ -4,6 +4,17 @@ defmodule Executive.Schema do
   """
   alias Executive.Schema.Option
 
+  @typedoc """
+  Mix tasks receive a list of strings that may have switches.
+
+  This type is used for the list of args both before and after removing any
+  switches.
+  """
+  @type argv() :: [String.t()]
+
+  @typedoc """
+  A schema outlines the desired structure for parsed arguments.
+  """
   @type t() :: %__MODULE__{options: %{atom() => Option.t()}}
 
   defstruct [:options]
