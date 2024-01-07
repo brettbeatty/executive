@@ -20,6 +20,7 @@ defmodule Executive.Types.Enum do
       ** (Executive.ParseError) 1 error found!
       --my-option : Expected one of (heads, tails), got "something else"
 
+  This type is aliased as `:enum`.
   """
   @behaviour Executive.Type
 

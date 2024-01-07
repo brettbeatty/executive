@@ -13,6 +13,11 @@ defmodule Executive.TypeTest do
       assert Type.unalias(:count, params) == {Executive.Types.Count, params}
     end
 
+    test "alias :enum" do
+      params = make_ref()
+      assert Type.unalias(:enum, params) == {Executive.Types.Enum, params}
+    end
+
     test "alias :float" do
       params = make_ref()
       assert Type.unalias(:float, params) == {Executive.Types.Float, params}
@@ -26,6 +31,11 @@ defmodule Executive.TypeTest do
     test "alias :string" do
       params = make_ref()
       assert Type.unalias(:string, params) == {Executive.Types.String, params}
+    end
+
+    test "alias :uuid" do
+      params = make_ref()
+      assert Type.unalias(:uuid, params) == {Executive.Types.UUID, params}
     end
 
     test "module names" do

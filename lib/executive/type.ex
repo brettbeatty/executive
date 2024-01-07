@@ -116,5 +116,6 @@ defmodule Executive.Type do
   def unalias(:float, params), do: {Executive.Types.Float, params}
   def unalias(:integer, params), do: {Executive.Types.Integer, params}
   def unalias(:string, params), do: {Executive.Types.String, params}
+  def unalias(:uuid, params), do: {Executive.Types.UUID, params}
   def unalias(module, params) when is_atom(module), do: {module, params}
 end
