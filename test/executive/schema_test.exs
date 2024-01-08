@@ -173,6 +173,47 @@ defmodule Executive.SchemaTest do
       assert {:error, error} = result
       assert Exception.message(error) == expected_message
     end
+
+    test "succeeds when required options provided" do
+      result =
+        Schema.new()
+        |> Schema.put_option(:my_option, :boolean, required: true)
+        |> Schema.parse(["--no-my-option"])
+
+      assert {:ok, [], my_option: false} = result
+    end
+
+    test "required options don't show up as missing when they're missing because they're invalid" do
+      result =
+        Schema.new()
+        |> Schema.put_option(:my_option, :uuid, required: true)
+        |> Schema.parse(["--my-option", "something else"])
+
+      expected_message =
+        String.trim("""
+        1 error found!
+        --my-option : Expected type UUID, got "something else"
+        """)
+
+      assert {:error, error} = result
+      assert Exception.message(error) == expected_message
+    end
+
+    test "errors when required options not given" do
+      result =
+        Schema.new()
+        |> Schema.put_option(:my_option, :count, required: true)
+        |> Schema.parse([])
+
+      expected_message =
+        String.trim("""
+        1 error found!
+        --my-option : Missing argument of type count
+        """)
+
+      assert {:error, error} = result
+      assert Exception.message(error) == expected_message
+    end
   end
 
   describe "parse!/2" do

@@ -4,11 +4,17 @@ defmodule Executive.Schema.Option do
   """
   alias Executive.Type
 
-  @type opts() :: [alias: atom() | [atom()]]
-  @type t() :: %__MODULE__{aliases: [atom()], name: atom(), type: module(), type_params: term()}
+  @type opts() :: [alias: atom() | [atom()], required: boolean()]
+  @type t() :: %__MODULE__{
+          aliases: [atom()],
+          name: atom(),
+          required: boolean(),
+          type: module(),
+          type_params: term()
+        }
   @type type() :: Type.t() | {Type.t(), Type.params()}
 
-  defstruct [:aliases, :name, :type, :type_params]
+  defstruct [:aliases, :name, :required, :type, :type_params]
 
   @doc """
   Create a new schema option.
@@ -25,6 +31,7 @@ defmodule Executive.Schema.Option do
     %__MODULE__{
       aliases: opts |> Keyword.get(:alias) |> List.wrap(),
       name: name,
+      required: Keyword.get(opts, :required, false),
       type: type,
       type_params: type_params
     }

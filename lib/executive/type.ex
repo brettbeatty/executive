@@ -79,7 +79,7 @@ defmodule Executive.Type do
 
   This callback will affect the type of `raw` in `c:parse/2`.
 
-  `c:raw_type/1` returns | `c:parse/w` receives
+  `c:raw_type/1` returns | `c:parse/2` receives
   ---------------------- | --------------------
   :boolean               | `t:boolean/0`
   :count                 | `t:pos_integer/0`
@@ -111,7 +111,6 @@ defmodule Executive.Type do
   """
   @callback spec(params()) :: Macro.t()
 
-  # credo:disable-for-this-file Credo.Check.Refactor.ModuleDependencies
   @spec unalias(t(), params()) :: {module(), params()}
   def unalias(type, params)
   def unalias(:ad_hoc, params), do: {Executive.Types.AdHoc, params}

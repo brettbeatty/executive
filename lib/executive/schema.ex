@@ -60,7 +60,7 @@ defmodule Executive.Schema do
     {raw_opts, new_argv, raw_errors} = parse_raw_opts(schema, argv)
     {refined_opts, refined_errors} = refine_opts(schema, raw_opts)
 
-    case raw_errors ++ refined_errors do
+    case require_opts(schema, refined_opts, raw_errors ++ refined_errors) do
       [] ->
         {:ok, new_argv, refined_opts}
 
@@ -126,6 +126,20 @@ defmodule Executive.Schema do
     end
   end
 
+  @spec require_opts(t(), keyword(), switch_errors()) :: switch_errors()
+  defp require_opts(schema, opts, errors) do
+    required_errors =
+      for option <- options(schema),
+          option.required,
+          not Keyword.has_key?(opts, option.name),
+          switch = Option.switch(option),
+          not Enum.any?(errors, &match?({^switch, _message}, &1)) do
+        {switch, ["Missing argument of type ", Option.type_name(option)]}
+      end
+
+    errors ++ required_errors
+  end
+
   @doc """
   Assertive companion to `parse/2`.
 
@@ -169,6 +183,19 @@ defmodule Executive.Schema do
 
     - `:alias` - a single-letter atom or list of these that can be used as
       aliases for the switch name
+
+      iex> Schema.new()
+      ...> |> Schema.put_option(:my_option, :string, alias: :m)
+      ...> |> Schema.parse!(["-m", "my string"])
+      {[], my_option: "my string"}
+
+    - `:required` - when true, option is required
+
+      iex> Schema.new()
+      ...> |> Schema.put_option(:my_option, :uuid, required: true)
+      ...> |> Schema.parse!([])
+      ** (Executive.ParseError) 1 error found!
+      --my-option : Missing argument of type UUID
 
   """
   @spec put_option(t(), atom(), Option.type()) :: t()

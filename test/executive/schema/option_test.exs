@@ -65,6 +65,14 @@ defmodule Executive.Schema.OptionTest do
       assert %Option{aliases: [:o]} = Option.new(:my_option, MyType, alias: :o)
       assert %Option{aliases: [:m, :o]} = Option.new(:my_option, MyType, alias: [:m, :o])
     end
+
+    test "supports :required option" do
+      assert %Option{required: true} = Option.new(:my_option, MyType, required: true)
+    end
+
+    test "defaults to required: false" do
+      assert %Option{required: false} = Option.new(:my_option, MyType, [])
+    end
   end
 
   describe "parse/2" do
