@@ -71,17 +71,24 @@ defmodule Executive.Task do
     quote do
       @impl Mix.Task
       def run(argv) do
-        Executive.Task._run(__MODULE__, unquote(Macro.escape(schema)), argv)
+        Executive.Task._run(__MODULE__, unquote(schema), argv)
       end
     end
   end
 
-  @spec build_schema(t()) :: Schema.t()
+  @spec build_schema(t()) :: Macro.t()
   defp build_schema(module) do
     options = Module.get_attribute(module, :executive_task_option, [])
 
-    Enum.reduce(options, Schema.new(), fn {name, type, opts}, schema ->
-      Schema.put_option(schema, name, type, opts)
+    schema =
+      quote do
+        Schema.new()
+      end
+
+    Enum.reduce(options, schema, fn {name, type, opts}, schema ->
+      quote do
+        Schema.put_option(unquote(schema), unquote(name), unquote(type), unquote(opts))
+      end
     end)
   end
 

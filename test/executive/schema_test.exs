@@ -12,6 +12,24 @@ defmodule Executive.SchemaTest do
   end
 
   describe "parse/2" do
+    test "handles ad hoc switches" do
+      refined = make_ref()
+
+      type = fn
+        :name -> "ad hoc type"
+        {:parse, "my raw value"} -> {:ok, refined}
+        :raw_type -> :string
+        :spec -> quote(do: reference())
+      end
+
+      result =
+        Schema.new()
+        |> Schema.put_option(:my_option, {:ad_hoc, type})
+        |> Schema.parse(["--my-option", "my raw value"])
+
+      assert result == {:ok, [], my_option: refined}
+    end
+
     test "handles boolean switches" do
       result =
         Schema.new()
@@ -73,6 +91,15 @@ defmodule Executive.SchemaTest do
         |> Schema.parse(["--my-option", "my string"])
 
       assert result == {:ok, [], my_option: "my string"}
+    end
+
+    test "handles uuid switches" do
+      result =
+        Schema.new()
+        |> Schema.put_option(:my_option, :uuid)
+        |> Schema.parse(["--my-option", "7ac420a7-4ddf-4652-84bc-29cd13d3700a"])
+
+      assert result == {:ok, [], my_option: "7ac420a7-4ddf-4652-84bc-29cd13d3700a"}
     end
 
     test "supports switch aliases" do

@@ -4,6 +4,7 @@ defmodule Executive.TaskTask do
   defmodule MockTask do
     use Executive.Task
 
+    option :ad_hoc_switch, {:ad_hoc, &one_less/1}, alias: :a
     option :boolean_switch, :boolean, alias: :b
     option :count_switch, :count, alias: :c
     option :enum_switch, {:enum, [:alfa, :bravo]}, alias: :e
@@ -15,11 +16,29 @@ defmodule Executive.TaskTask do
     def run(argv, opts) do
       {argv, opts}
     end
+
+    defp one_less(request) do
+      case request do
+        :name ->
+          "one less"
+
+        {:parse, raw} ->
+          {:ok, raw - 1}
+
+        :raw_type ->
+          :integer
+
+        :spec ->
+          quote(do: integer())
+      end
+    end
   end
 
   describe "option parsing" do
     test "parses options" do
       argv = [
+        "--ad-hoc-switch",
+        "16",
         "--no-boolean-switch",
         "--count-switch",
         "--count-switch",
@@ -39,6 +58,7 @@ defmodule Executive.TaskTask do
       expected_opts = [
         # count switches seem to always end up first the in the list
         count_switch: 2,
+        ad_hoc_switch: 15,
         boolean_switch: false,
         float_switch: 0.1,
         integer_switch: 10,
@@ -50,6 +70,8 @@ defmodule Executive.TaskTask do
 
     test "fails if options invalid" do
       argv = [
+        "--ad-hoc-switch",
+        "zero",
         "--float-switch",
         "half",
         "--integer-switch",
@@ -62,7 +84,8 @@ defmodule Executive.TaskTask do
 
       expected_message =
         String.trim("""
-        4 errors found!
+        5 errors found!
+        --ad-hoc-switch : Expected type one less, got "zero"
         --float-switch : Expected type float, got "half"
         --integer-switch : Expected type integer, got "4.0"
         --string-switch : Missing argument of type string

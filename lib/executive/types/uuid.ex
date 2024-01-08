@@ -18,6 +18,7 @@ defmodule Executive.Types.UUID do
       ...> |> Schema.put_option(:my_option, :uuid)
       ...> |> Schema.parse(["--my-option", "00000000000000000000000000000000"])
 
+  This type is aliased as `:uuid`.
   """
   @behaviour Executive.Type
 
@@ -39,7 +40,7 @@ defmodule Executive.Types.UUID do
          {:ok, _} <- Base.decode16(e) do
       {:ok, raw}
     else
-      _ ->
+      _not_uuid ->
         {:error, ["Expected type UUID, got ", inspect(raw)]}
     end
   end

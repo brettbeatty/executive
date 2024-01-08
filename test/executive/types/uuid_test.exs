@@ -29,16 +29,8 @@ defmodule Executive.Types.UUIDTest do
 
   describe "spec/1" do
     test "<<_::288>>" do
-      spec = quote(do: <<_::288>>)
-
-      # the _ keeps has module as context
-      spec =
-        Macro.postwalk(spec, fn
-          {:_, [], __MODULE__} -> {:_, [], UUIDType}
-          ast -> ast
-        end)
-
-      assert UUIDType.spec([]) == spec
+      spec = UUIDType.spec([])
+      assert Macro.to_string(spec) == "<<_::288>>"
     end
   end
 end

@@ -8,11 +8,14 @@ defmodule Executive.Type do
 
   Alias      | Module
   ---------- | ------
+  `:ad_hoc`  | `Executive.Types.AdHoc`
   `:boolean` | `Executive.Types.Boolean`
   `:count`   | `Executive.Types.Count`
+  `:enum`    | `Executive.Types.Enum`
   `:float`   | `Executive.Types.Float`
   `:integer` | `Executive.Types.Integer`
   `:string`  | `Executive.Types.String`
+  `:uuid`    | `Executive.Types.UUID`
 
   """
   @type alias() :: :boolean | :count | :float | :integer | :string
@@ -108,8 +111,10 @@ defmodule Executive.Type do
   """
   @callback spec(params()) :: Macro.t()
 
+  # credo:disable-for-this-file Credo.Check.Refactor.ModuleDependencies
   @spec unalias(t(), params()) :: {module(), params()}
   def unalias(type, params)
+  def unalias(:ad_hoc, params), do: {Executive.Types.AdHoc, params}
   def unalias(:boolean, params), do: {Executive.Types.Boolean, params}
   def unalias(:count, params), do: {Executive.Types.Count, params}
   def unalias(:enum, params), do: {Executive.Types.Enum, params}
