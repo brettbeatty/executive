@@ -1,10 +1,11 @@
-defmodule Executive.TaskTask do
+defmodule Executive.TaskTest do
   use ExUnit.Case, async: true
+  alias Executive.Schema
 
   defmodule MockTask do
     use Executive.Task
 
-    option :ad_hoc_switch, {:ad_hoc, &one_less/1}, alias: :a
+    option :ad_hoc_switch, {:ad_hoc, &__MODULE__.one_less/1}, alias: :a
     option :boolean_switch, :boolean, alias: :b
     option :count_switch, :count, alias: :c
     option :enum_switch, {:enum, [:alfa, :bravo]}, alias: :e
@@ -12,12 +13,18 @@ defmodule Executive.TaskTask do
     option :integer_switch, :integer, alias: :i
     option :string_switch, :string, alias: :s
 
+    with_schema schema do
+      def schema do
+        unquote(schema)
+      end
+    end
+
     @impl Executive.Task
     def run(argv, opts) do
       {argv, opts}
     end
 
-    defp one_less(request) do
+    def one_less(request) do
       case request do
         :name ->
           "one less"
@@ -95,6 +102,22 @@ defmodule Executive.TaskTask do
       assert_raise Executive.ParseError, expected_message, fn ->
         MockTask.run(argv)
       end
+    end
+  end
+
+  describe "with_schema" do
+    test "allows injecting schema into module" do
+      expected_schema =
+        Schema.new()
+        |> Schema.put_option(:ad_hoc_switch, {:ad_hoc, &MockTask.one_less/1}, alias: :a)
+        |> Schema.put_option(:boolean_switch, :boolean, alias: :b)
+        |> Schema.put_option(:count_switch, :count, alias: :c)
+        |> Schema.put_option(:enum_switch, {:enum, [:alfa, :bravo]}, alias: :e)
+        |> Schema.put_option(:float_switch, :float, alias: :f)
+        |> Schema.put_option(:integer_switch, :integer, alias: :i)
+        |> Schema.put_option(:string_switch, :string, alias: :s)
+
+      assert MockTask.schema() == expected_schema
     end
   end
 end

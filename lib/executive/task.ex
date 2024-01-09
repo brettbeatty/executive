@@ -59,6 +59,26 @@ defmodule Executive.Task do
     :ok = Module.put_attribute(__CALLER__.module, :executive_task_option, {name, type, opts})
   end
 
+  @doc """
+  Create a hook for adding code to a module after schema has compiled.
+
+  The first argument is a variable binding for the schema, and the second is a
+  "do" block containing code to inject into the current module. The block of
+  code is quoted, so references to the schema must be wrapped in
+  [unquote/1](https://hexdocs.pm/elixir/Kernel.SpecialForms.html#unquote/1).
+
+      with_schema schema do
+        def schema do
+          unquote(schema)
+        end
+      end
+
+  """
+  defmacro with_schema(binding, block) do
+    block = Macro.escape(block, unquote: true)
+    :ok = Module.put_attribute(__CALLER__.module, :executive_task_with_schema, {binding, block})
+  end
+
   @spec _run(t(), Schema.t(), [String.t()]) :: any()
   def _run(module, schema, argv) do
     {argv, opts} = Schema.parse!(schema, argv)
@@ -66,13 +86,20 @@ defmodule Executive.Task do
   end
 
   defmacro __before_compile__(env) do
-    schema = build_schema(env.module)
+    schema = env.module |> build_schema() |> Macro.escape()
+    hooks = env.module |> Module.get_attribute(:executive_task_with_schema, []) |> Enum.reverse()
+
+    blocks =
+      for {binding, block} <- hooks do
+        quote do
+          unquote(binding) = unquote(schema)
+          Module.eval_quoted(__MODULE__, unquote(block))
+        end
+      end
 
     quote do
-      @impl Mix.Task
-      def run(argv) do
-        Executive.Task._run(__MODULE__, unquote(schema), argv)
-      end
+      unquote_splicing(blocks)
+      :ok
     end
   end
 
@@ -94,13 +121,21 @@ defmodule Executive.Task do
 
   defmacro __using__(_opts) do
     Module.register_attribute(__CALLER__.module, :executive_task_option, accumulate: true)
+    Module.register_attribute(__CALLER__.module, :executive_task_with_schema, accumulate: true)
 
-    quote do
+    quote unquote: false do
       use Mix.Task
-      import Executive.Task, only: [option: 2, option: 3]
+      import Executive.Task, only: [option: 2, option: 3, with_schema: 2]
 
       @before_compile Executive.Task
       @behaviour Executive.Task
+
+      with_schema schema do
+        @impl Mix.Task
+        def run(argv) do
+          Executive.Task._run(__MODULE__, unquote(schema), argv)
+        end
+      end
     end
   end
 end
