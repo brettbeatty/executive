@@ -86,18 +86,21 @@ defmodule Executive.Task do
   end
 
   defmacro __before_compile__(env) do
+    schema_var = Macro.unique_var(:schema, __MODULE__)
     schema = env.module |> build_schema() |> Macro.escape()
     hooks = env.module |> Module.get_attribute(:executive_task_with_schema, []) |> Enum.reverse()
 
     blocks =
       for {binding, block} <- hooks do
         quote do
-          unquote(binding) = unquote(schema)
-          Module.eval_quoted(__MODULE__, unquote(block))
+          case unquote(schema_var) do
+            unquote(binding) -> Module.eval_quoted(__ENV__, unquote(block))
+          end
         end
       end
 
     quote do
+      unquote(schema_var) = unquote(schema)
       unquote_splicing(blocks)
       :ok
     end
