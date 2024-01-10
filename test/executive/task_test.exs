@@ -15,6 +15,32 @@ defmodule Executive.TaskTest do
     end)
   end
 
+  describe ":start_application opt" do
+    defmodule StartsApplication do
+      use Executive.Task, start_application: true
+
+      @impl Executive.Task
+      def run(_argv, _opts), do: :ok
+    end
+
+    defmodule DoesNotStartApplication do
+      use Executive.Task
+
+      @impl Executive.Task
+      def run(_argv, _opts), do: :ok
+    end
+
+    test "when start_application: true runs mix app.start" do
+      StartsApplication.run([])
+      assert_received :application_started
+    end
+
+    test "when start_application: false does not run mix app.start" do
+      DoesNotStartApplication.run([])
+      refute_received :application_started
+    end
+  end
+
   describe "option/3" do
     test "parses options" do
       argv = [
@@ -113,6 +139,13 @@ defmodule Executive.TaskTest do
         end
 
       assert Macro.to_string(actual_type) == Macro.to_string(expected_type)
+    end
+  end
+
+  describe "start_application/0" do
+    test "starts application using mix app.start" do
+      Executive.Task.start_application()
+      assert_received :application_started
     end
   end
 

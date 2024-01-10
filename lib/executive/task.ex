@@ -38,6 +38,12 @@ defmodule Executive.Task do
         end
       end
 
+  ## Options
+
+    - `:start_application` - when true, application is started automatically
+
+      use Executive.Task, start_application: true
+
   """
   alias Executive.Schema
 
@@ -139,6 +145,25 @@ defmodule Executive.Task do
     end
   end
 
+  @mix_task Application.compile_env(:executive, Mix.Task, Mix.Task)
+
+  @doc """
+  Starts application using "mix app.start".
+
+  This function is available to mix tasks that need to perform some setup before
+  starting an OTP application. Mix tasks that do not need to set anything up can
+  opt instead to pass `start_application: true` to `use Executive.Task`.
+
+      iex> Executive.Task.start_application()
+      :ok
+
+  """
+  @spec start_application() :: :ok
+  def start_application do
+    @mix_task.run("app.start")
+    :ok
+  end
+
   @doc """
   Create a hook for adding code to a module after schema has compiled.
 
@@ -183,11 +208,6 @@ defmodule Executive.Task do
     blocks = for hook <- hooks, do: hook.(schema)
 
     quote do
-      @impl Mix.Task
-      def run(argv) do
-        Executive.Task._run(__MODULE__, unquote(schema_ast), argv)
-      end
-
       unquote_splicing(blocks)
       :ok
     end
@@ -209,11 +229,20 @@ defmodule Executive.Task do
     end)
   end
 
-  defmacro __using__(_opts) do
+  defmacro __using__(opts) do
     Module.register_attribute(__CALLER__.module, :executive_task_option, accumulate: true)
     Module.register_attribute(__CALLER__.module, :executive_task_with_schema, accumulate: true)
 
-    quote unquote: false do
+    setup =
+      if Keyword.get(opts, :start_application, false) do
+        quote do
+          Executive.Task.start_application()
+        end
+      else
+        :ok
+      end
+
+    quote do
       use Mix.Task
 
       import Executive.Task,
@@ -231,9 +260,12 @@ defmodule Executive.Task do
       @behaviour Executive.Task
 
       with_schema fn schema ->
+        setup = unquote(Macro.escape(setup))
+
         quote do
           @impl Mix.Task
           def run(argv) do
+            unquote(setup)
             Executive.Task._run(__MODULE__, unquote(Macro.escape(schema)), argv)
           end
         end
