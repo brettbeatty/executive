@@ -11,6 +11,108 @@ defmodule Executive.SchemaTest do
     end
   end
 
+  describe "option_typespec/2" do
+    test "builds typespec for parsed option" do
+      actual =
+        Schema.new()
+        |> Schema.put_option(:my_boolean, :boolean)
+        |> Schema.put_option(:my_enum, {:enum, [:a, :b, :c]})
+        |> Schema.put_option(:my_uuid, :uuid)
+        |> Schema.option_typespec()
+
+      expected =
+        quote do
+          {:my_boolean, boolean()}
+          | {:my_enum, :a | :b | :c}
+          | {:my_uuid, <<_::288>>}
+        end
+
+      assert Macro.to_string(actual) == Macro.to_string(expected)
+    end
+
+    test "supports :except" do
+      actual =
+        Schema.new()
+        |> Schema.put_option(:my_count, :count)
+        |> Schema.put_option(:my_float, :float)
+        |> Schema.put_option(:my_string, :string)
+        |> Schema.option_typespec(except: [:my_float])
+
+      expected =
+        quote do
+          {:my_count, pos_integer()} | {:my_string, String.t()}
+        end
+
+      assert Macro.to_string(actual) == Macro.to_string(expected)
+    end
+
+    test "supports :only" do
+      actual =
+        Schema.new()
+        |> Schema.put_option(:my_ad_hoc, {:ad_hoc, fn :spec -> quote(do: pid()) end})
+        |> Schema.put_option(:my_enum, {:enum, [:x, :y]})
+        |> Schema.put_option(:my_integer, :integer)
+        |> Schema.option_typespec(only: [:my_integer, :my_ad_hoc])
+
+      expected =
+        quote do
+          {:my_integer, integer()} | {:my_ad_hoc, pid()}
+        end
+
+      assert Macro.to_string(actual) == Macro.to_string(expected)
+    end
+  end
+
+  describe "options_typespec/2" do
+    test "builds typespec for parsed options" do
+      actual =
+        Schema.new()
+        |> Schema.put_option(:my_ad_hoc, {:ad_hoc, fn :spec -> quote(do: reference()) end})
+        |> Schema.put_option(:my_boolean, :boolean)
+        |> Schema.put_option(:my_float, :float)
+        |> Schema.options_typespec()
+
+      expected =
+        quote do
+          [my_ad_hoc: reference(), my_boolean: boolean(), my_float: float()]
+        end
+
+      assert Macro.to_string(actual) == Macro.to_string(expected)
+    end
+
+    test "supports :except" do
+      actual =
+        Schema.new()
+        |> Schema.put_option(:my_count, :count)
+        |> Schema.put_option(:my_integer, :integer)
+        |> Schema.put_option(:my_uuid, :uuid)
+        |> Schema.options_typespec(except: [:my_uuid])
+
+      expected =
+        quote do
+          [my_count: pos_integer(), my_integer: integer()]
+        end
+
+      assert Macro.to_string(actual) == Macro.to_string(expected)
+    end
+
+    test "supports :only" do
+      actual =
+        Schema.new()
+        |> Schema.put_option(:my_enum, {:enum, [:one, :two, :three]})
+        |> Schema.put_option(:my_string, :string)
+        |> Schema.put_option(:my_uuid, :uuid)
+        |> Schema.options_typespec(only: [:my_uuid, :my_string])
+
+      expected =
+        quote do
+          [my_uuid: <<_::288>>, my_string: String.t()]
+        end
+
+      assert Macro.to_string(actual) == Macro.to_string(expected)
+    end
+  end
+
   describe "parse/2" do
     test "handles ad hoc switches" do
       refined = make_ref()

@@ -10,8 +10,11 @@ defmodule Executive.Task do
   > When you `use Executive.Task`, it does a few things:
   >
   >   - `use Mix.Task` and implement `c:Mix.Task.run/1`
-  >   - import `option/2` and `option/3`
-  >     - these are powered by a module attribute and `@before_compile` hook
+  >   - import the `Executive.Task` domain-specific language
+  >     - `option/2` and `option/3`
+  >     - `option_type/1` and `option_type/2`
+  >     - `options_type/1` and `options_type/2`
+  >     - `with_schema/1`
   >   - set `@behaviour Executive.Task`
   >     - this will expect the module to implement `c:Executive.Task.run/2`
 
@@ -37,7 +40,6 @@ defmodule Executive.Task do
 
   """
   alias Executive.Schema
-  alias Executive.Schema.Option
 
   @typedoc """
   Intended to represent modules implementing the `Executive.Task` behaviour.
@@ -54,29 +56,118 @@ defmodule Executive.Task do
 
   See `Executive.Schema.put_option/4`.
   """
-  @spec option(atom(), Option.type(), Option.opts()) :: :ok
   defmacro option(name, type, opts \\ []) do
     :ok = Module.put_attribute(__CALLER__.module, :executive_task_option, {name, type, opts})
   end
 
   @doc """
+  Builds a type named `name` from schema options.
+
+      option :my_enum, {:enum, [:lite, :basic, :premier]}
+      option :my_string, :string
+      option :my_uuid, :uuid
+
+      option_type option()
+      # Equivalent:
+      # @type option() ::
+      #         {:my_enum, :lite | :basic | :premier}
+      #         | {:my_string, String.t()}
+      #         | {:my_uuid, <<_::288>>}
+
+  Supports options `:only` and `:except`.
+
+      option :my_count, :count
+      option :my_float, :float
+      option :my_integer, :integer
+
+      option_type option(), except: [:my_integer]
+      # Equivalent:
+      # @type option() :: {:my_count, pos_integer()} | {:my_float, float()}
+
+  See `Executive.Schema.option_typespec/2`.
+  """
+  defmacro option_type(name, opts \\ []) do
+    build_option_type(:option_typespec, name, opts)
+  end
+
+  @doc """
+  Builds a type named `name` from schema options.
+
+      option :my_float, :float
+      option :my_integer, :integer
+      option :my_uuid, :uuid
+
+      option_type options()
+      # Equivalent:
+      # @type options() :: [
+      #         my_float: float(),
+      #         my_integer: integer(),
+      #         my_uuid: <<_::288>>
+      #       ]
+
+  Supports options `:only` and `:except`.
+
+      option :my_count, :count
+      option :my_enum, {:enum, [:enabled, :disabled]}
+      option :my_string, :string
+
+      option_type options(), only: [:my_enum, :my_string]
+      # Equivalent:
+      # @type options() :: [
+      #         my_enum: :enabled | :disabled,
+      #         my_string: String.t()
+      #       ]
+
+  See `Executive.Schema.options_typespec/2`.
+  """
+  defmacro options_type(name, opts \\ []) do
+    build_option_type(:options_typespec, name, opts)
+  end
+
+  @spec build_option_type(:option_typespec | :options_typespec, Macro.t(), Schema.option_filter()) ::
+          Macro.t()
+  defp build_option_type(fun, name, opts) do
+    quote do
+      with_schema fn schema ->
+        name = unquote(Macro.escape(name))
+        typespec = Executive.Schema.unquote(fun)(schema, unquote(opts))
+
+        quote do
+          @type unquote(name) :: unquote(typespec)
+        end
+      end
+    end
+  end
+
+  @doc """
   Create a hook for adding code to a module after schema has compiled.
 
-  The first argument is a variable binding for the schema, and the second is a
-  "do" block containing code to inject into the current module. The block of
-  code is quoted, so references to the schema must be wrapped in
-  [unquote/1](https://hexdocs.pm/elixir/Kernel.SpecialForms.html#unquote/1).
+  Takes a function to be called with the schema. This function returns code in
+  an AST, which can be built using `quote/2`.
 
-      with_schema schema do
-        def schema do
-          unquote(schema)
+      with_schema fn schema ->
+        typespec = Executive.Schema.options_typespec(schema)
+
+        quote do
+          @type options() :: unquote(typespec)
+        end
+      end
+
+  Any unquoted values will need to be an AST. To inject the schema itself, for
+  example, it would need to be wrapped in `Macro.escape/2`.
+
+      with_schema fn schema ->
+        quote do
+          def schema do
+            unquote(Macro.escape(schema))
+          end
         end
       end
 
   """
-  defmacro with_schema(binding, block) do
-    block = Macro.escape(block, unquote: true)
-    :ok = Module.put_attribute(__CALLER__.module, :executive_task_with_schema, {binding, block})
+  defmacro with_schema(fun) do
+    {fun, _binding} = Module.eval_quoted(__CALLER__, fun)
+    :ok = Module.put_attribute(__CALLER__.module, :executive_task_with_schema, fun)
   end
 
   @spec _run(t(), Schema.t(), [String.t()]) :: any()
@@ -86,21 +177,17 @@ defmodule Executive.Task do
   end
 
   defmacro __before_compile__(env) do
-    schema_var = Macro.unique_var(:schema, __MODULE__)
-    schema = env.module |> build_schema() |> Macro.escape()
+    schema_ast = build_schema(env.module)
+    {schema, _binding} = Module.eval_quoted(env, schema_ast)
     hooks = env.module |> Module.get_attribute(:executive_task_with_schema, []) |> Enum.reverse()
-
-    blocks =
-      for {binding, block} <- hooks do
-        quote do
-          case unquote(schema_var) do
-            unquote(binding) -> Module.eval_quoted(__ENV__, unquote(block))
-          end
-        end
-      end
+    blocks = for hook <- hooks, do: hook.(schema)
 
     quote do
-      unquote(schema_var) = unquote(schema)
+      @impl Mix.Task
+      def run(argv) do
+        Executive.Task._run(__MODULE__, unquote(schema_ast), argv)
+      end
+
       unquote_splicing(blocks)
       :ok
     end
@@ -112,12 +199,12 @@ defmodule Executive.Task do
 
     schema =
       quote do
-        Schema.new()
+        Executive.Schema.new()
       end
 
     Enum.reduce(options, schema, fn {name, type, opts}, schema ->
       quote do
-        Schema.put_option(unquote(schema), unquote(name), unquote(type), unquote(opts))
+        Executive.Schema.put_option(unquote(schema), unquote(name), unquote(type), unquote(opts))
       end
     end)
   end
@@ -128,15 +215,27 @@ defmodule Executive.Task do
 
     quote unquote: false do
       use Mix.Task
-      import Executive.Task, only: [option: 2, option: 3, with_schema: 2]
+
+      import Executive.Task,
+        only: [
+          option: 2,
+          option: 3,
+          option_type: 1,
+          option_type: 2,
+          options_type: 1,
+          options_type: 2,
+          with_schema: 1
+        ]
 
       @before_compile Executive.Task
       @behaviour Executive.Task
 
-      with_schema schema do
-        @impl Mix.Task
-        def run(argv) do
-          Executive.Task._run(__MODULE__, unquote(schema), argv)
+      with_schema fn schema ->
+        quote do
+          @impl Mix.Task
+          def run(argv) do
+            Executive.Task._run(__MODULE__, unquote(Macro.escape(schema)), argv)
+          end
         end
       end
     end

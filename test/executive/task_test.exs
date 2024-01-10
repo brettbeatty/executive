@@ -1,47 +1,21 @@
 defmodule Executive.TaskTest do
   use ExUnit.Case, async: true
   alias Executive.Schema
+  alias Mix.Tasks.MockTask
 
-  defmodule MockTask do
-    use Executive.Task
+  defp module_type(module, name, arity) do
+    {:ok, types} = Code.Typespec.fetch_types(module)
 
-    option :ad_hoc_switch, {:ad_hoc, &__MODULE__.one_less/1}, alias: :a
-    option :boolean_switch, :boolean, alias: :b
-    option :count_switch, :count, alias: :c
-    option :enum_switch, {:enum, [:alfa, :bravo]}, alias: :e
-    option :float_switch, :float, alias: :f
-    option :integer_switch, :integer, alias: :i
-    option :string_switch, :string, alias: :s
+    Enum.find_value(types, fn
+      {:type, type = {^name, _type, args}} when length(args) == arity ->
+        Code.Typespec.type_to_quoted(type)
 
-    with_schema schema do
-      def schema do
-        unquote(schema)
-      end
-    end
-
-    @impl Executive.Task
-    def run(argv, opts) do
-      {argv, opts}
-    end
-
-    def one_less(request) do
-      case request do
-        :name ->
-          "one less"
-
-        {:parse, raw} ->
-          {:ok, raw - 1}
-
-        :raw_type ->
-          :integer
-
-        :spec ->
-          quote(do: integer())
-      end
-    end
+      {:type, _type} ->
+        nil
+    end)
   end
 
-  describe "option parsing" do
+  describe "option/3" do
     test "parses options" do
       argv = [
         "--ad-hoc-switch",
@@ -105,7 +79,44 @@ defmodule Executive.TaskTest do
     end
   end
 
-  describe "with_schema" do
+  describe "option_type/2" do
+    test "builds type for option" do
+      actual_type = module_type(MockTask, :option, 0)
+
+      expected_type =
+        quote do
+          option() ::
+            {:boolean_switch, boolean()}
+            | {:count_switch, pos_integer()}
+            | {:enum_switch, :alfa | :bravo}
+            | {:string_switch, String.t()}
+        end
+
+      assert Macro.to_string(actual_type) == Macro.to_string(expected_type)
+    end
+  end
+
+  describe "options_type/2" do
+    test "builds type for options" do
+      actual_type = module_type(MockTask, :options, 0)
+
+      expected_type =
+        quote do
+          options() :: [
+            boolean_switch: boolean(),
+            count_switch: pos_integer(),
+            enum_switch: :alfa | :bravo,
+            float_switch: float(),
+            integer_switch: integer(),
+            string_switch: String.t()
+          ]
+        end
+
+      assert Macro.to_string(actual_type) == Macro.to_string(expected_type)
+    end
+  end
+
+  describe "with_schema/1" do
     test "allows injecting schema into module" do
       expected_schema =
         Schema.new()

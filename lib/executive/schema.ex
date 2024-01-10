@@ -15,6 +15,13 @@ defmodule Executive.Schema do
   @type argv() :: [String.t()]
 
   @typedoc """
+  The `:only` and `:except` keywords are used to filter options.
+
+  They two are mutually exclusive.
+  """
+  @type option_filter() :: [except: [atom()]] | [only: [atom()]]
+
+  @typedoc """
   A schema outlines the desired structure for parsed arguments.
   """
   @type t() :: %__MODULE__{options: %{atom() => Option.t()}}
@@ -29,6 +36,90 @@ defmodule Executive.Schema do
   @spec new() :: t()
   def new do
     %__MODULE__{options: %{}}
+  end
+
+  @doc """
+  Builds a typespec for an option parsed by `schema`.
+
+  This typespec is in the form of a quoted AST and intended to be used by
+  `Executive.Task.option_type/2`.
+
+      iex> Schema.new()
+      ...> |> Schema.put_option(:my_count, :count)
+      ...> |> Schema.put_option(:my_integer, :integer)
+      ...> |> Schema.put_option(:my_string, :string)
+      ...> |> Schema.option_typespec()
+      ...> |> Macro.to_string()
+      "{:my_count, pos_integer()} | {:my_integer, integer()} | {:my_string, String.t()}"
+
+  Supports options `:only` and `:except`.
+
+      iex> Schema.new()
+      ...> |> Schema.put_option(:my_boolean, :boolean)
+      ...> |> Schema.put_option(:my_enum, {:enum, [:a, :b, :c]})
+      ...> |> Schema.put_option(:my_float, :float)
+      ...> |> Schema.option_typespec(only: [:my_boolean, :my_enum])
+      ...> |> Macro.to_string()
+      "{:my_boolean, boolean()} | {:my_enum, :a | :b | :c}"
+
+  """
+  @spec option_typespec(t()) :: Macro.t()
+  @spec option_typespec(t(), option_filter()) :: Macro.t()
+  def option_typespec(schema, opts \\ []) do
+    schema
+    |> options_typespec(opts)
+    |> Enum.reverse()
+    |> Enum.reduce(&quote(do: unquote(&1) | unquote(&2)))
+  end
+
+  @doc """
+  Builds a typespec for options parsed by `schema`.
+
+      iex> Schema.new()
+      ...> |> Schema.put_option(:my_float, :float)
+      ...> |> Schema.put_option(:my_string, :string)
+      ...> |> Schema.put_option(:my_uuid, :uuid)
+      ...> |> Schema.options_typespec()
+      ...> |> Macro.to_string()
+      "[my_float: float(), my_string: String.t(), my_uuid: <<_::288>>]"
+
+  Supports options `:only` and `:except`.
+
+      iex> Schema.new()
+      ...> |> Schema.put_option(:my_boolean, :boolean)
+      ...> |> Schema.put_option(:my_count, :count)
+      ...> |> Schema.put_option(:my_integer, :integer)
+      ...> |> Schema.options_typespec(except: [:my_boolean])
+      ...> |> Macro.to_string()
+      "[my_count: pos_integer(), my_integer: integer()]"
+
+  """
+  @spec options_typespec(t()) :: Macro.t()
+  @spec options_typespec(t(), option_filter()) :: Macro.t()
+  def options_typespec(schema, opts \\ []) do
+    %__MODULE__{options: options} = schema
+
+    schema
+    |> option_names(opts)
+    |> Enum.map(&{&1, options |> Map.fetch!(&1) |> Option.spec()})
+  end
+
+  @spec option_names(t(), option_filter()) :: [atom()]
+  defp option_names(schema, opts)
+
+  defp option_names(schema, []) do
+    schema
+    |> options()
+    |> Enum.map(& &1.name)
+    |> Enum.sort()
+  end
+
+  defp option_names(_schema, only: only) when is_list(only) do
+    only
+  end
+
+  defp option_names(schema, except: except) when is_list(except) do
+    option_names(schema, []) -- except
   end
 
   @doc """
