@@ -39,6 +39,31 @@ defmodule Executive.Schema do
   end
 
   @doc """
+  Builds documentation for `schema`'s options.
+
+      Schema.new()
+      |> Schema.put_option(:my_boolean, :boolean, doc: "controls something")
+      |> Schema.put_option(:my_enum, {:enum, [:x, :y, :z]}, doc: "an enum of some kind")
+      |> Schema.put_option(:my_float, :float, doc: "some sort of rate, maybe", required: true)
+      |> Schema.option_docs()
+      # - `--my-boolean` - boolean - controls something
+      # - `--my-enum` - enum (x, y, z) - an enum of some kind
+      # - `--my-float` - float, required - some sort of rate, maybe
+
+  """
+  @spec option_docs(t()) :: IO.chardata()
+  @spec option_docs(t(), option_filter()) :: IO.chardata()
+  def option_docs(schema, opts \\ []) do
+    %__MODULE__{options: options} = schema
+
+    for option_name <- option_names(schema, opts) do
+      options
+      |> Map.fetch!(option_name)
+      |> Option.docs()
+    end
+  end
+
+  @doc """
   Builds a typespec for an option parsed by `schema`.
 
   This typespec is in the form of a quoted AST and intended to be used by

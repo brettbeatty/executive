@@ -44,6 +44,73 @@ defmodule Executive.Schema.OptionTest do
     end
   end
 
+  describe "docs/1" do
+    test "builds docs without docstring" do
+      option = Option.new(:my_option, :string, [])
+
+      actual = option |> Option.docs() |> to_string()
+
+      expected = """
+        - `--my-option` - string
+      """
+
+      assert actual == expected
+    end
+
+    test "builds docs with docstring" do
+      option = Option.new(:my_option, :integer, doc: "does something amazing")
+
+      actual = option |> Option.docs() |> to_string()
+
+      expected = """
+        - `--my-option` - integer - does something amazing
+      """
+
+      assert actual == expected
+    end
+
+    test "annotates required options" do
+      option = Option.new(:my_option, :uuid, required: true)
+
+      actual = option |> Option.docs() |> to_string()
+
+      expected = """
+        - `--my-option` - UUID, required
+      """
+
+      assert actual == expected
+    end
+
+    test "lists any aliases" do
+      option = Option.new(:my_option, :count, alias: [:c, :k])
+
+      actual = option |> Option.docs() |> to_string()
+
+      expected = """
+        - `--my-option` (`-c`, `-k`) - count
+      """
+
+      assert actual == expected
+    end
+
+    test "put it all together" do
+      option =
+        Option.new(:my_option, {:enum, [:a, :b, :c]},
+          alias: :e,
+          doc: "some description of what each thing does",
+          required: true
+        )
+
+      actual = option |> Option.docs() |> to_string()
+
+      expected = """
+        - `--my-option` (`-e`) - enum (a, b, c), required - some description of what each thing does
+      """
+
+      assert actual == expected
+    end
+  end
+
   describe "new/3" do
     test "creates new option" do
       assert %Option{name: :my_option, type: MyType, type_params: []} =

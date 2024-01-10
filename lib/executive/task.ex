@@ -63,7 +63,14 @@ defmodule Executive.Task do
   See `Executive.Schema.put_option/4`.
   """
   defmacro option(name, type, opts \\ []) do
-    :ok = Module.put_attribute(__CALLER__.module, :executive_task_option, {name, type, opts})
+    quote do
+      Executive.Task._put_option(
+        __MODULE__,
+        unquote(Macro.escape(name)),
+        unquote(Macro.escape(type)),
+        unquote(Macro.escape(opts))
+      )
+    end
   end
 
   @doc """
@@ -193,6 +200,21 @@ defmodule Executive.Task do
   defmacro with_schema(fun) do
     {fun, _binding} = Module.eval_quoted(__CALLER__, fun)
     :ok = Module.put_attribute(__CALLER__.module, :executive_task_with_schema, fun)
+  end
+
+  @spec _put_option(module(), Macro.t(), Macro.t(), keyword()) :: :ok
+  def _put_option(module, name, type, opts) do
+    opts =
+      case Module.get_attribute(module, :optdoc) do
+        doc when is_binary(doc) ->
+          Keyword.put(opts, :doc, doc)
+
+        nil ->
+          opts
+      end
+
+    Module.delete_attribute(module, :optdoc)
+    Module.put_attribute(module, :executive_task_option, {name, type, opts})
   end
 
   @spec _run(t(), Schema.t(), [String.t()]) :: any()

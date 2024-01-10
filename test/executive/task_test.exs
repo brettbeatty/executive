@@ -3,6 +3,13 @@ defmodule Executive.TaskTest do
   alias Executive.Schema
   alias Mix.Tasks.MockTask
 
+  defp module_doc(module) do
+    {:docs_v1, _annotation, :elixir, _format, %{"en" => module_doc}, _metadata, _docs} =
+      Code.fetch_docs(module)
+
+    module_doc
+  end
+
   defp module_type(module, name, arity) do
     {:ok, types} = Code.Typespec.fetch_types(module)
 
@@ -105,6 +112,30 @@ defmodule Executive.TaskTest do
     end
   end
 
+  describe "option_docs/2" do
+    test "builds docs for options" do
+      expected = """
+      This is a task that does something.
+
+      ## Usage
+
+          mix mock_task [OPTIONS]
+
+      ## Options
+
+        - `--boolean-switch` (`-b`) - boolean - something about the boolean switch
+        - `--count-switch` (`-c`) - count - counts stuff
+        - `--enum-switch` (`-e`) - enum (alfa, bravo) - behaves differently based on alfa vs bravo
+        - `--float-switch` (`-f`) - float - not a whole number
+        - `--integer-switch` (`-i`) - integer - any integer will do
+        - `--string-switch` (`-s`) - string - some sort of silly string
+
+      """
+
+      assert module_doc(MockTask) == expected
+    end
+  end
+
   describe "option_type/2" do
     test "builds type for option" do
       actual_type = module_type(MockTask, :option, 0)
@@ -153,13 +184,22 @@ defmodule Executive.TaskTest do
     test "allows injecting schema into module" do
       expected_schema =
         Schema.new()
-        |> Schema.put_option(:ad_hoc_switch, {:ad_hoc, &MockTask.one_less/1}, alias: :a)
-        |> Schema.put_option(:boolean_switch, :boolean, alias: :b)
-        |> Schema.put_option(:count_switch, :count, alias: :c)
-        |> Schema.put_option(:enum_switch, {:enum, [:alfa, :bravo]}, alias: :e)
-        |> Schema.put_option(:float_switch, :float, alias: :f)
-        |> Schema.put_option(:integer_switch, :integer, alias: :i)
-        |> Schema.put_option(:string_switch, :string, alias: :s)
+        |> Schema.put_option(:ad_hoc_switch, {:ad_hoc, &MockTask.one_less/1},
+          alias: :a,
+          doc: "we can't build docs for ad hoc"
+        )
+        |> Schema.put_option(:boolean_switch, :boolean,
+          alias: :b,
+          doc: "something about the boolean switch"
+        )
+        |> Schema.put_option(:count_switch, :count, alias: :c, doc: "counts stuff")
+        |> Schema.put_option(:enum_switch, {:enum, [:alfa, :bravo]},
+          alias: :e,
+          doc: "behaves differently based on alfa vs bravo"
+        )
+        |> Schema.put_option(:float_switch, :float, alias: :f, doc: "not a whole number")
+        |> Schema.put_option(:integer_switch, :integer, alias: :i, doc: "any integer will do")
+        |> Schema.put_option(:string_switch, :string, alias: :s, doc: "some sort of silly string")
 
       assert MockTask.schema() == expected_schema
     end

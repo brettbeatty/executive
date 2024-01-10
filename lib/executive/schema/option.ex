@@ -4,9 +4,10 @@ defmodule Executive.Schema.Option do
   """
   alias Executive.Type
 
-  @type opts() :: [alias: atom() | [atom()], required: boolean()]
+  @type opts() :: [alias: atom() | [atom()], doc: String.t(), required: boolean()]
   @type t() :: %__MODULE__{
           aliases: [atom()],
+          doc: String.t(),
           name: atom(),
           required: boolean(),
           type: module(),
@@ -14,7 +15,39 @@ defmodule Executive.Schema.Option do
         }
   @type type() :: Type.t() | {Type.t(), Type.params()}
 
-  defstruct [:aliases, :name, :required, :type, :type_params]
+  defstruct [:aliases, :doc, :name, :required, :type, :type_params]
+
+  @doc """
+  Build chardata documenting `option`.
+  """
+  @spec docs(t()) :: IO.chardata()
+  def docs(option) do
+    %__MODULE__{aliases: aliases, doc: doc, required: required} = option
+
+    aliased =
+      case aliases |> Enum.map(&["`-", to_string(&1), ?`]) |> Enum.intersperse(", ") do
+        [] ->
+          []
+
+        aliased ->
+          [?(, aliased, ") "]
+      end
+
+    required_string = if required, do: ", required", else: []
+    docstring = if byte_size(doc) > 0, do: [" - ", doc], else: []
+
+    [
+      "  - `",
+      switch(option),
+      "` ",
+      aliased,
+      "- ",
+      type_name(option),
+      required_string,
+      docstring,
+      ?\n
+    ]
+  end
 
   @doc """
   Create a new schema option.
@@ -31,6 +64,7 @@ defmodule Executive.Schema.Option do
     %__MODULE__{
       aliases: opts |> Keyword.get(:alias) |> List.wrap(),
       name: name,
+      doc: opts |> Keyword.get(:doc, "") |> String.trim(),
       required: Keyword.get(opts, :required, false),
       type: type,
       type_params: type_params

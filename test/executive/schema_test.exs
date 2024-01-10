@@ -11,6 +11,67 @@ defmodule Executive.SchemaTest do
     end
   end
 
+  describe "option_docs/2" do
+    test "builds docs for schema options" do
+      actual =
+        Schema.new()
+        |> Schema.put_option(:my_boolean, :boolean, alias: :b)
+        |> Schema.put_option(:my_count, :count, doc: "counts how many times you use it")
+        |> Schema.put_option(:my_string, :string, required: true, doc: "some docs here")
+        |> Schema.option_docs()
+        |> to_string()
+
+      expected =
+        """
+          - `--my-boolean` (`-b`) - boolean
+          - `--my-count` - count - counts how many times you use it
+          - `--my-string` - string, required - some docs here
+        """
+
+      assert actual == expected
+    end
+
+    test "supports :except" do
+      actual =
+        Schema.new()
+        |> Schema.put_option(:my_enum, {:enum, [:fork, :spoon]},
+          alias: [:f, :s],
+          doc: "fork or spoon?",
+          required: true
+        )
+        |> Schema.put_option(:my_integer, :integer, doc: "some docs about my integer")
+        |> Schema.put_option(:my_uuid, :uuid, alias: :u, required: true)
+        |> Schema.option_docs(except: [:my_uuid])
+        |> to_string()
+
+      expected =
+        """
+          - `--my-enum` (`-f`, `-s`) - enum (fork, spoon), required - fork or spoon?
+          - `--my-integer` - integer - some docs about my integer
+        """
+
+      assert actual == expected
+    end
+
+    test "supports :only" do
+      actual =
+        Schema.new()
+        |> Schema.put_option(:my_float, :float, alias: :f, doc: "my float")
+        |> Schema.put_option(:my_integer, :integer, alias: :i, doc: "my integer")
+        |> Schema.put_option(:my_string, :string, alias: :s, required: true)
+        |> Schema.option_docs(only: [:my_float, :my_string])
+        |> to_string()
+
+      expected =
+        """
+          - `--my-float` (`-f`) - float - my float
+          - `--my-string` (`-s`) - string, required
+        """
+
+      assert actual == expected
+    end
+  end
+
   describe "option_typespec/2" do
     test "builds typespec for parsed option" do
       actual =
