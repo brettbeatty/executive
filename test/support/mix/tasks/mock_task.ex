@@ -6,19 +6,27 @@ defmodule Mix.Tasks.MockTask do
   ## Usage
 
       mix mock_task [OPTIONS]
+
   """
   use Executive.Task
 
-  with_schema fn schema ->
-    quote do
-      @moduledoc """
-      #{@moduledoc}
-      ## Options
+  moduledoc_append """
+  ## Cool Options
 
-      #{unquote(Executive.Schema.option_docs(schema, except: [:ad_hoc_switch]))}
-      """
-    end
-  end
+  #{Executive.Schema.option_docs(&1, only: [:enum_switch])}
+
+  ## Useful Options
+
+  #{Executive.Schema.option_docs(&1, only: [:string_switch, :integer_switch, :boolean_switch])}
+
+  """
+
+  moduledoc_append """
+  ## I'm Not Sure These Will Get Used
+
+  #{Executive.Schema.option_docs(&1, only: [:count_switch, :float_switch])}
+
+  """
 
   option_type option(), only: [:boolean_switch, :count_switch, :enum_switch, :string_switch]
   options_type options(), except: [:ad_hoc_switch]

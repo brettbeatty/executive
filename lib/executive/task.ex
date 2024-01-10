@@ -1,5 +1,5 @@
 defmodule Executive.Task do
-  @moduledoc ~S"""
+  @moduledoc """
   `Executive.Task` aims to accelerate mix task development.
 
   It builds on `Mix.Task` and provides a few niceties, such as more powerful
@@ -56,6 +56,36 @@ defmodule Executive.Task do
   Tasks built with `Executive.Task` implement this instead of `c:Mix.Task.run/1`.
   """
   @callback run([String.t()], keyword()) :: any()
+
+  @doc """
+  Appends to moduledoc once schema is compiled.
+
+  This macro expects a string interpolating values where the schema is available
+  as `&1` (like the shorthand for an anonymous 1-arity function).
+
+      moduledoc_append \"""
+      ## Basic Options
+
+      \#{Executive.Schema.option_docs(&1, only: [:add, :subtract])}
+
+      ## Advanced Options
+
+      \#{Executive.Schema.option_docs(&1, only: [:multiply, :divide])}
+
+      \"""
+
+  """
+  defmacro moduledoc_append(addendum) do
+    quote do
+      with_schema fn schema ->
+        addendum = (&unquote(addendum)).(schema)
+
+        quote do
+          @moduledoc @moduledoc <> unquote(addendum)
+        end
+      end
+    end
+  end
 
   @doc """
   Puts an option into task's schema.
@@ -269,6 +299,7 @@ defmodule Executive.Task do
 
       import Executive.Task,
         only: [
+          moduledoc_append: 1,
           option: 2,
           option: 3,
           option_type: 1,

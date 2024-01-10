@@ -48,6 +48,36 @@ defmodule Executive.TaskTest do
     end
   end
 
+  describe "moduledoc_append/2" do
+    test "builds docs for options" do
+      expected = """
+      This is a task that does something.
+
+      ## Usage
+
+          mix mock_task [OPTIONS]
+
+      ## Cool Options
+
+        - `--enum-switch` (`-e`) - enum (alfa, bravo) - behaves differently based on alfa vs bravo
+
+      ## Useful Options
+
+        - `--string-switch` (`-s`) - string - some sort of silly string
+        - `--integer-switch` (`-i`) - integer - any integer will do
+        - `--boolean-switch` (`-b`) - boolean - something about the boolean switch
+
+      ## I'm Not Sure These Will Get Used
+
+        - `--count-switch` (`-c`) - count - counts stuff
+        - `--float-switch` (`-f`) - float - not a whole number
+
+      """
+
+      assert module_doc(MockTask) == expected
+    end
+  end
+
   describe "option/3" do
     test "parses options" do
       argv = [
@@ -109,30 +139,6 @@ defmodule Executive.TaskTest do
       assert_raise Executive.ParseError, expected_message, fn ->
         MockTask.run(argv)
       end
-    end
-  end
-
-  describe "option_docs/2" do
-    test "builds docs for options" do
-      expected = """
-      This is a task that does something.
-
-      ## Usage
-
-          mix mock_task [OPTIONS]
-
-      ## Options
-
-        - `--boolean-switch` (`-b`) - boolean - something about the boolean switch
-        - `--count-switch` (`-c`) - count - counts stuff
-        - `--enum-switch` (`-e`) - enum (alfa, bravo) - behaves differently based on alfa vs bravo
-        - `--float-switch` (`-f`) - float - not a whole number
-        - `--integer-switch` (`-i`) - integer - any integer will do
-        - `--string-switch` (`-s`) - string - some sort of silly string
-
-      """
-
-      assert module_doc(MockTask) == expected
     end
   end
 

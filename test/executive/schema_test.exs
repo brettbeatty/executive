@@ -22,11 +22,11 @@ defmodule Executive.SchemaTest do
         |> to_string()
 
       expected =
-        """
+        String.trim_trailing("""
           - `--my-boolean` (`-b`) - boolean
           - `--my-count` - count - counts how many times you use it
           - `--my-string` - string, required - some docs here
-        """
+        """)
 
       assert actual == expected
     end
@@ -45,10 +45,10 @@ defmodule Executive.SchemaTest do
         |> to_string()
 
       expected =
-        """
+        String.trim_trailing("""
           - `--my-enum` (`-f`, `-s`) - enum (fork, spoon), required - fork or spoon?
           - `--my-integer` - integer - some docs about my integer
-        """
+        """)
 
       assert actual == expected
     end
@@ -63,10 +63,10 @@ defmodule Executive.SchemaTest do
         |> to_string()
 
       expected =
-        """
+        String.trim_trailing("""
           - `--my-float` (`-f`) - float - my float
           - `--my-string` (`-s`) - string, required
-        """
+        """)
 
       assert actual == expected
     end

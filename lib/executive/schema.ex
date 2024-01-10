@@ -56,11 +56,10 @@ defmodule Executive.Schema do
   def option_docs(schema, opts \\ []) do
     %__MODULE__{options: options} = schema
 
-    for option_name <- option_names(schema, opts) do
-      options
-      |> Map.fetch!(option_name)
-      |> Option.docs()
-    end
+    schema
+    |> option_names(opts)
+    |> Enum.map(&Option.docs(Map.fetch!(options, &1)))
+    |> Enum.intersperse(?\n)
   end
 
   @doc """

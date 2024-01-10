@@ -44,8 +44,7 @@ defmodule Executive.Schema.Option do
       "- ",
       type_name(option),
       required_string,
-      docstring,
-      ?\n
+      docstring
     ]
   end
 

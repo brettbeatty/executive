@@ -49,10 +49,7 @@ defmodule Executive.Schema.OptionTest do
       option = Option.new(:my_option, :string, [])
 
       actual = option |> Option.docs() |> to_string()
-
-      expected = """
-        - `--my-option` - string
-      """
+      expected = "  - `--my-option` - string"
 
       assert actual == expected
     end
@@ -61,10 +58,7 @@ defmodule Executive.Schema.OptionTest do
       option = Option.new(:my_option, :integer, doc: "does something amazing")
 
       actual = option |> Option.docs() |> to_string()
-
-      expected = """
-        - `--my-option` - integer - does something amazing
-      """
+      expected = "  - `--my-option` - integer - does something amazing"
 
       assert actual == expected
     end
@@ -73,10 +67,7 @@ defmodule Executive.Schema.OptionTest do
       option = Option.new(:my_option, :uuid, required: true)
 
       actual = option |> Option.docs() |> to_string()
-
-      expected = """
-        - `--my-option` - UUID, required
-      """
+      expected = "  - `--my-option` - UUID, required"
 
       assert actual == expected
     end
@@ -85,10 +76,7 @@ defmodule Executive.Schema.OptionTest do
       option = Option.new(:my_option, :count, alias: [:c, :k])
 
       actual = option |> Option.docs() |> to_string()
-
-      expected = """
-        - `--my-option` (`-c`, `-k`) - count
-      """
+      expected = "  - `--my-option` (`-c`, `-k`) - count"
 
       assert actual == expected
     end
@@ -103,9 +91,8 @@ defmodule Executive.Schema.OptionTest do
 
       actual = option |> Option.docs() |> to_string()
 
-      expected = """
-        - `--my-option` (`-e`) - enum (a, b, c), required - some description of what each thing does
-      """
+      expected =
+        "  - `--my-option` (`-e`) - enum (a, b, c), required - some description of what each thing does"
 
       assert actual == expected
     end
