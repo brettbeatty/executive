@@ -142,8 +142,22 @@ defmodule Executive.Schema.OptionTest do
 
   describe "raw_type/1" do
     test "gets type's raw type" do
-      ref = MockType.return(:count)
+      ref = MockType.return(:float)
       option = Option.new(:my_option, {MockType, ref}, [])
+
+      assert Option.raw_type(option) == :float
+    end
+
+    test "includes :keep if unique: false" do
+      ref = MockType.return(:string)
+      option = Option.new(:my_option, {MockType, ref}, unique: false)
+
+      assert Option.raw_type(option) == [:keep, :string]
+    end
+
+    test "does not include :keep for :count" do
+      ref = MockType.return(:count)
+      option = Option.new(:my_option, {MockType, ref}, unique: false)
 
       assert Option.raw_type(option) == :count
     end

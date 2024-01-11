@@ -377,6 +377,24 @@ defmodule Executive.SchemaTest do
       assert {:error, error} = result
       assert Exception.message(error) == expected_message
     end
+
+    test "keeps last value when unique: true" do
+      result =
+        Schema.new()
+        |> Schema.put_option(:my_option, :string)
+        |> Schema.parse(["--my-option", "one value", "--my-option", "another value"])
+
+      assert result == {:ok, [], my_option: "another value"}
+    end
+
+    test "keeps all values for option when unique: false" do
+      result =
+        Schema.new()
+        |> Schema.put_option(:my_option, {:enum, [:duck, :goose]}, unique: false)
+        |> Schema.parse(["--my-option", "duck", "--my-option", "duck", "--my-option", "goose"])
+
+      assert result == {:ok, [], my_option: :duck, my_option: :duck, my_option: :goose}
+    end
   end
 
   describe "parse!/2" do

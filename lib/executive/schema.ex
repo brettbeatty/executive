@@ -312,6 +312,13 @@ defmodule Executive.Schema do
       ** (Executive.ParseError) 1 error found!
       --my-option : Missing argument of type UUID
 
+    - `:unique` - when false, allows options to be passed more than once
+
+      iex> Schema.new()
+      ...> |> Schema.put_option(:my_option, :boolean, unique: false)
+      ...> |> Schema.parse!(["--my-option", "--no-my-option", "--my-option"])
+      {[], [my_option: true, my_option: false, my_option: true]}
+
   """
   @spec put_option(t(), atom(), Option.type()) :: t()
   @spec put_option(t(), atom(), Option.type(), Option.opts()) :: t()

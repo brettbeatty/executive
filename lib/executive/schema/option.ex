@@ -4,18 +4,24 @@ defmodule Executive.Schema.Option do
   """
   alias Executive.Type
 
-  @type opts() :: [alias: atom() | [atom()], doc: String.t(), required: boolean()]
+  @type opts() :: [
+          alias: atom() | [atom()],
+          doc: String.t(),
+          required: boolean(),
+          unique: boolean()
+        ]
   @type t() :: %__MODULE__{
           aliases: [atom()],
           doc: String.t(),
           name: atom(),
           required: boolean(),
           type: module(),
-          type_params: term()
+          type_params: term(),
+          unique: boolean()
         }
   @type type() :: Type.t() | {Type.t(), Type.params()}
 
-  defstruct [:aliases, :doc, :name, :required, :type, :type_params]
+  defstruct [:aliases, :doc, :name, :required, :type, :type_params, :unique]
 
   @doc """
   Build chardata documenting `option`.
@@ -66,7 +72,8 @@ defmodule Executive.Schema.Option do
       doc: opts |> Keyword.get(:doc, "") |> String.trim(),
       required: Keyword.get(opts, :required, false),
       type: type,
-      type_params: type_params
+      type_params: type_params,
+      unique: Keyword.get(opts, :unique, true)
     }
   end
 
@@ -93,8 +100,14 @@ defmodule Executive.Schema.Option do
   """
   @spec raw_type(t()) :: Type.raw_type()
   def raw_type(option) do
-    %__MODULE__{type: type, type_params: params} = option
-    type.raw_type(params)
+    %__MODULE__{type: type, type_params: params, unique: unique} = option
+    raw_type = type.raw_type(params)
+
+    if unique || raw_type == :count do
+      raw_type
+    else
+      [:keep, raw_type]
+    end
   end
 
   @doc """
