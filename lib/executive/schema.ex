@@ -39,7 +39,7 @@ defmodule Executive.Schema do
   end
 
   @doc """
-  Builds documentation for `schema`'s options.
+  Build documentation for `schema`'s options.
 
       Schema.new()
       |> Schema.put_option(:my_boolean, :boolean, doc: "controls something")
@@ -63,7 +63,7 @@ defmodule Executive.Schema do
   end
 
   @doc """
-  Builds a typespec for an option parsed by `schema`.
+  Build a typespec for an option parsed by `schema`.
 
   This typespec is in the form of a quoted AST and intended to be used by
   `Executive.Task.option_type/2`.
@@ -97,7 +97,7 @@ defmodule Executive.Schema do
   end
 
   @doc """
-  Builds a typespec for options parsed by `schema`.
+  Build a typespec for options parsed by `schema`.
 
       iex> Schema.new()
       ...> |> Schema.put_option(:my_float, :float)

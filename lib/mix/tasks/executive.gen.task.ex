@@ -44,8 +44,7 @@ defmodule Mix.Tasks.Executive.Gen.Task do
 
   Running the following task
 
-      $ mix executive.gen.task my.task --string my_string \\
-        --alias s --doc 'my doc' --required --no-unique
+      $ mix executive.gen.task my.task --string my_string --alias s --doc 'my doc' --required --no-unique
 
   Would result in an option like this
 

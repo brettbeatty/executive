@@ -38,7 +38,7 @@ defmodule Executive.Type do
   @type raw_value() :: boolean() | float() | integer() | String.t()
 
   @typedoc """
-  Executive implement `Executive.Type` behaviour.
+  Executive types implement `Executive.Type` behaviour.
 
   But the `t:t/0` typespec includes more than these modules:
   - Built-in types have [aliases](`t:alias/0`) that can be used in lieu of
@@ -81,11 +81,11 @@ defmodule Executive.Type do
 
   `c:raw_type/1` returns | `c:parse/2` receives
   ---------------------- | --------------------
-  :boolean               | `t:boolean/0`
-  :count                 | `t:pos_integer/0`
-  :float                 | `t:float/0`
-  :integer               | `t:integer/0`
-  :string                | `t:String.t/0`
+  `:boolean`             | `t:boolean/0`
+  `:count`               | `t:pos_integer/0`
+  `:float`               | `t:float/0`
+  `:integer`             | `t:integer/0`
+  `:string`              | `t:String.t/0`
 
   """
   @callback raw_type(params()) :: raw_type()
@@ -111,6 +111,9 @@ defmodule Executive.Type do
   """
   @callback spec(params()) :: Macro.t()
 
+  @doc """
+  Resolves alias `type` and `params` into concrete type and params.
+  """
   @spec unalias(t(), params()) :: {module(), params()}
   def unalias(type, params)
   def unalias(:ad_hoc, params), do: {Executive.Types.AdHoc, params}

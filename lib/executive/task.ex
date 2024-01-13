@@ -22,15 +22,13 @@ defmodule Executive.Task do
   of `c:Mix.Task.run/1`.
 
       defmodule Mix.Tasks.MyTask do
-        use Executive.Task
+        use Executive.Task, start_application: true
 
         option :action, {:enum, [:start, :stop]}, alias: :a
         option :id, MyApp.ExecutiveTypes.ID
 
         @impl Executive.Task
         def run(argv, opts) do
-          Mix.Task.run("app.start")
-
           action = Keyword.get(opts, :action, :start)
           id = Keyword.get(opts, :id)
 

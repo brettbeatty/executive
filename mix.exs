@@ -4,6 +4,7 @@ defmodule Executive.MixProject do
   def project do
     [
       app: :executive,
+      name: "Executive",
       version: "0.1.0",
       elixir: "~> 1.15",
       elixirc_paths: elixirc_paths(Mix.env()),
@@ -11,6 +12,23 @@ defmodule Executive.MixProject do
       deps: deps(),
       dialyzer: [
         plt_add_apps: [:mix]
+      ],
+      source_url: "https://github.com/brettbeatty/executive",
+      docs: [
+        main: "readme",
+        extras: ["README.md"],
+        groups_for_modules: [
+          Types: [
+            Executive.Types.AdHoc,
+            Executive.Types.Boolean,
+            Executive.Types.Count,
+            Executive.Types.Enum,
+            Executive.Types.Float,
+            Executive.Types.Integer,
+            Executive.Types.String,
+            Executive.Types.UUID
+          ]
+        ]
       ]
     ]
   end
@@ -29,7 +47,8 @@ defmodule Executive.MixProject do
   defp deps do
     [
       {:credo, "~> 1.7", only: :dev, runtime: false},
-      {:dialyxir, "~> 1.4", only: :dev, runtime: false}
+      {:dialyxir, "~> 1.4", only: :dev, runtime: false},
+      {:ex_doc, "~> 0.31.1", only: :dev, runtime: false}
       # {:dep_from_hexpm, "~> 0.3.0"},
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
     ]

@@ -5,12 +5,12 @@ defmodule Executive.Types.AdHoc do
   The function should handle analogues to all `Executive.Type` callbacks,
   depending on the value passed in.
 
-  Argument      | Analogue
-  ------------- | --------
-  :name         | `c:Executive.Type.name/1`
-  {:parse, raw} | `c:Executive.Type.parse/2`
-  :type_name    | `c:Executive.Type.type_name/1`
-  :spec         | `c:Executive.Type.spec/1`
+  Argument        | Analogue
+  --------------- | --------
+  `:name`         | `c:Executive.Type.name/1`
+  `{:parse, raw}` | `c:Executive.Type.parse/2`
+  `:type_name`    | `c:Executive.Type.name/1`
+  `:spec`         | `c:Executive.Type.spec/1`
 
   ## Examples
   If, for example, a mix task needed a base64-encoded option, that could be

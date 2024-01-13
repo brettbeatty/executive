@@ -9,9 +9,19 @@ defmodule Executive.Task.Generator do
   @template_file Application.app_dir(:executive, ["priv", "templates", "task.ex.eex"])
   @external_resource @template_file
 
+  @typedoc """
+  This is how options are passed in from `Mix.Tasks.Executive.Gen.Task`.
+  """
   @type option() :: {atom(), Type.alias(), Option.opts()}
+
+  @typedoc """
+  These are task-level opts passed in from `Mix.Tasks.Executive.Gen.Task`.
+  """
   @type task_opts() :: [start_application: boolean()]
 
+  @doc """
+  Generate a mix task with the given name and options.
+  """
   @spec generate_task(String.t(), [option()], task_opts()) :: boolean()
   def generate_task(task_name, options, task_opts) do
     assigns = [
