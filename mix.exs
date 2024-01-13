@@ -20,7 +20,6 @@ defmodule Executive.MixProject do
         groups_for_modules: [
           Types: [
             Executive.Types.Boolean,
-            Executive.Types.Count,
             Executive.Types.Enum,
             Executive.Types.Float,
             Executive.Types.Integer,

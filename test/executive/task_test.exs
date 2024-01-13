@@ -69,7 +69,6 @@ defmodule Executive.TaskTest do
 
       ## I'm Not Sure These Will Get Used
 
-        - `--count-switch` (`-c`) - count - counts stuff
         - `--float-switch` (`-f`) - float - not a whole number
 
       """
@@ -82,8 +81,6 @@ defmodule Executive.TaskTest do
     test "parses options" do
       argv = [
         "--no-boolean-switch",
-        "--count-switch",
-        "--count-switch",
         "--float-switch",
         "0.1",
         "--integer-switch",
@@ -98,8 +95,6 @@ defmodule Executive.TaskTest do
       expected_argv = ["some args", "that won't", "end up as opts"]
 
       expected_opts = [
-        # count switches seem to always end up first the in the list
-        count_switch: 2,
         boolean_switch: false,
         float_switch: 0.1,
         integer_switch: 10,
@@ -144,7 +139,6 @@ defmodule Executive.TaskTest do
         quote do
           option() ::
             {:boolean_switch, boolean()}
-            | {:count_switch, pos_integer()}
             | {:enum_switch, :alfa | :bravo}
             | {:string_switch, String.t()}
         end
@@ -161,7 +155,6 @@ defmodule Executive.TaskTest do
         quote do
           options() :: [
             boolean_switch: boolean(),
-            count_switch: pos_integer(),
             enum_switch: :alfa | :bravo,
             float_switch: float(),
             integer_switch: integer(),
@@ -188,7 +181,6 @@ defmodule Executive.TaskTest do
           alias: :b,
           doc: "something about the boolean switch"
         )
-        |> Schema.put_option(:count_switch, :count, alias: :c, doc: "counts stuff")
         |> Schema.put_option(:enum_switch, {:enum, [:alfa, :bravo]},
           alias: :e,
           doc: "behaves differently based on alfa vs bravo"

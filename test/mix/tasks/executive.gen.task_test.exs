@@ -90,11 +90,11 @@ defmodule Mix.Tasks.Executive.Gen.TaskTest do
     end
 
     test "allows passing docs" do
-      generate("something.do", count: :my_count, doc: "counts things", integer: :my_integer)
+      generate("something.do", float: :my_float, doc: "my float", integer: :my_integer)
 
       expect_file("something.do", "Something.Do", """
-        @optdoc "counts things"
-        option :my_count, :count
+        @optdoc "my float"
+        option :my_float, :float
         option :my_integer, :integer
       """)
     end
@@ -121,14 +121,6 @@ defmodule Mix.Tasks.Executive.Gen.TaskTest do
 
       expect_file("something.do", "Something.Do", """
         option :my_boolean, :boolean
-      """)
-    end
-
-    test "accepts count options" do
-      generate("something.do", count: :my_count)
-
-      expect_file("something.do", "Something.Do", """
-        option :my_count, :count
       """)
     end
 
@@ -220,7 +212,7 @@ defmodule Mix.Tasks.Executive.Gen.TaskTest do
       message = "Modifier switch --doc must follow a type switch"
 
       assert_raise RuntimeError, message, fn ->
-        generate("something.do", doc: "my count", count: :my_count)
+        generate("something.do", doc: "my uuid", uuid: :my_uuid)
       end
     end
 

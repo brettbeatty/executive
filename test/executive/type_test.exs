@@ -8,11 +8,6 @@ defmodule Executive.TypeTest do
       assert Type.unalias(:boolean, params) == {Executive.Types.Boolean, params}
     end
 
-    test "alias :count" do
-      params = make_ref()
-      assert Type.unalias(:count, params) == {Executive.Types.Count, params}
-    end
-
     test "alias :enum" do
       params = make_ref()
       assert Type.unalias(:enum, params) == {Executive.Types.Enum, params}

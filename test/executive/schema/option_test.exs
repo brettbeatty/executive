@@ -73,10 +73,10 @@ defmodule Executive.Schema.OptionTest do
     end
 
     test "lists any aliases" do
-      option = Option.new(:my_option, :count, alias: [:c, :k])
+      option = Option.new(:my_option, :float, alias: [:f, :n])
 
       actual = option |> Option.docs() |> to_string()
-      expected = "  - `--my-option` (`-c`, `-k`) - count"
+      expected = "  - `--my-option` (`-f`, `-n`) - float"
 
       assert actual == expected
     end
@@ -153,13 +153,6 @@ defmodule Executive.Schema.OptionTest do
       option = Option.new(:my_option, {MockType, ref}, unique: false)
 
       assert Option.raw_type(option) == [:keep, :string]
-    end
-
-    test "does not include :keep for :count" do
-      ref = MockType.return(:count)
-      option = Option.new(:my_option, {MockType, ref}, unique: false)
-
-      assert Option.raw_type(option) == :count
     end
   end
 

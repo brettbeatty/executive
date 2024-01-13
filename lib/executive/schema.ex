@@ -69,12 +69,11 @@ defmodule Executive.Schema do
   `Executive.Task.option_type/2`.
 
       iex> Schema.new()
-      ...> |> Schema.put_option(:my_count, :count)
       ...> |> Schema.put_option(:my_integer, :integer)
       ...> |> Schema.put_option(:my_string, :string)
       ...> |> Schema.option_typespec()
       ...> |> Macro.to_string()
-      "{:my_count, pos_integer()} | {:my_integer, integer()} | {:my_string, String.t()}"
+      "{:my_integer, integer()} | {:my_string, String.t()}"
 
   Supports options `:only` and `:except`.
 
@@ -111,11 +110,11 @@ defmodule Executive.Schema do
 
       iex> Schema.new()
       ...> |> Schema.put_option(:my_boolean, :boolean)
-      ...> |> Schema.put_option(:my_count, :count)
+      ...> |> Schema.put_option(:my_float, :float)
       ...> |> Schema.put_option(:my_integer, :integer)
       ...> |> Schema.options_typespec(except: [:my_boolean])
       ...> |> Macro.to_string()
-      "[my_count: pos_integer(), my_integer: integer()]"
+      "[my_float: float(), my_integer: integer()]"
 
   """
   @spec options_typespec(t()) :: Macro.t()
@@ -154,9 +153,9 @@ defmodule Executive.Schema do
       iex> Schema.new()
       ...> |> Schema.put_option(:my_integer, :integer)
       ...> |> Schema.put_option(:my_string, :string, alias: :s)
-      ...> |> Schema.put_option(:my_count, :count, alias: :c)
-      ...> |> Schema.parse(["-c", "a", "-s", "bravo", "-c", "--my-integer", "7"])
-      {:ok, ["a"], [my_count: 2, my_string: "bravo", my_integer: 7]}
+      ...> |> Schema.put_option(:my_boolean, :boolean, alias: :b, unique: false)
+      ...> |> Schema.parse(["-b", "a", "-s", "bravo", "-b", "--my-integer", "7"])
+      {:ok, ["a"], [my_boolean: true, my_string: "bravo", my_boolean: true, my_integer: 7]}
 
   When parsing fails it raises an `Executive.ParseError`.
 
@@ -269,10 +268,9 @@ defmodule Executive.Schema do
   When parsing fails it raises an `Executive.ParseError`.
 
       iex> Schema.new()
-      ...> |> Schema.put_option(:my_count, :count, alias: [:c, :k])
       ...> |> Schema.put_option(:my_string, :string, alias: :s)
       ...> |> Schema.put_option(:my_float, :float, alias: :f)
-      ...> |> Schema.parse!(["more", "-c", "--my-string", "-f", "not a float"])
+      ...> |> Schema.parse!(["more", "--my-string", "-f", "not a float"])
       ** (Executive.ParseError) 2 errors found!
       --my-string : Missing argument of type string
       --my-float : Expected type float, got "not a float"
