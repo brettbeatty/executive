@@ -110,14 +110,14 @@ defmodule Executive.SchemaTest do
     test "supports :only" do
       actual =
         Schema.new()
-        |> Schema.put_option(:my_ad_hoc, {:ad_hoc, fn :spec -> quote(do: pid()) end})
         |> Schema.put_option(:my_enum, {:enum, [:x, :y]})
+        |> Schema.put_option(:my_float, :float)
         |> Schema.put_option(:my_integer, :integer)
-        |> Schema.option_typespec(only: [:my_integer, :my_ad_hoc])
+        |> Schema.option_typespec(only: [:my_integer, :my_float])
 
       expected =
         quote do
-          {:my_integer, integer()} | {:my_ad_hoc, pid()}
+          {:my_integer, integer()} | {:my_float, float()}
         end
 
       assert Macro.to_string(actual) == Macro.to_string(expected)
@@ -128,14 +128,13 @@ defmodule Executive.SchemaTest do
     test "builds typespec for parsed options" do
       actual =
         Schema.new()
-        |> Schema.put_option(:my_ad_hoc, {:ad_hoc, fn :spec -> quote(do: reference()) end})
         |> Schema.put_option(:my_boolean, :boolean)
         |> Schema.put_option(:my_float, :float)
         |> Schema.options_typespec()
 
       expected =
         quote do
-          [my_ad_hoc: reference(), my_boolean: boolean(), my_float: float()]
+          [my_boolean: boolean(), my_float: float()]
         end
 
       assert Macro.to_string(actual) == Macro.to_string(expected)
@@ -175,24 +174,6 @@ defmodule Executive.SchemaTest do
   end
 
   describe "parse/2" do
-    test "handles ad hoc switches" do
-      refined = make_ref()
-
-      type = fn
-        :name -> "ad hoc type"
-        {:parse, "my raw value"} -> {:ok, refined}
-        :raw_type -> :string
-        :spec -> quote(do: reference())
-      end
-
-      result =
-        Schema.new()
-        |> Schema.put_option(:my_option, {:ad_hoc, type})
-        |> Schema.parse(["--my-option", "my raw value"])
-
-      assert result == {:ok, [], my_option: refined}
-    end
-
     test "handles boolean switches" do
       result =
         Schema.new()

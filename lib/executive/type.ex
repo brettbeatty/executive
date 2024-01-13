@@ -8,7 +8,6 @@ defmodule Executive.Type do
 
   Alias      | Module
   ---------- | ------
-  `:ad_hoc`  | `Executive.Types.AdHoc`
   `:boolean` | `Executive.Types.Boolean`
   `:count`   | `Executive.Types.Count`
   `:enum`    | `Executive.Types.Enum`
@@ -18,7 +17,7 @@ defmodule Executive.Type do
   `:uuid`    | `Executive.Types.UUID`
 
   """
-  @type alias() :: :ad_hoc | :boolean | :count | :enum | :float | :integer | :string | :uuid
+  @type alias() :: :boolean | :count | :enum | :float | :integer | :string | :uuid
 
   @typedoc """
   To support parametrization, all type callbacks accept parameters.
@@ -116,7 +115,6 @@ defmodule Executive.Type do
   """
   @spec unalias(t(), params()) :: {module(), params()}
   def unalias(type, params)
-  def unalias(:ad_hoc, params), do: {Executive.Types.AdHoc, params}
   def unalias(:boolean, params), do: {Executive.Types.Boolean, params}
   def unalias(:count, params), do: {Executive.Types.Count, params}
   def unalias(:enum, params), do: {Executive.Types.Enum, params}

@@ -81,8 +81,6 @@ defmodule Executive.TaskTest do
   describe "option/3" do
     test "parses options" do
       argv = [
-        "--ad-hoc-switch",
-        "16",
         "--no-boolean-switch",
         "--count-switch",
         "--count-switch",
@@ -102,7 +100,6 @@ defmodule Executive.TaskTest do
       expected_opts = [
         # count switches seem to always end up first the in the list
         count_switch: 2,
-        ad_hoc_switch: 15,
         boolean_switch: false,
         float_switch: 0.1,
         integer_switch: 10,
@@ -114,8 +111,6 @@ defmodule Executive.TaskTest do
 
     test "fails if options invalid" do
       argv = [
-        "--ad-hoc-switch",
-        "zero",
         "--float-switch",
         "half",
         "--integer-switch",
@@ -128,8 +123,7 @@ defmodule Executive.TaskTest do
 
       expected_message =
         String.trim("""
-        5 errors found!
-        --ad-hoc-switch : Expected type one less, got "zero"
+        4 errors found!
         --float-switch : Expected type float, got "half"
         --integer-switch : Expected type integer, got "4.0"
         --string-switch : Missing argument of type string
@@ -190,10 +184,6 @@ defmodule Executive.TaskTest do
     test "allows injecting schema into module" do
       expected_schema =
         Schema.new()
-        |> Schema.put_option(:ad_hoc_switch, {:ad_hoc, &MockTask.one_less/1},
-          alias: :a,
-          doc: "we can't build docs for ad hoc"
-        )
         |> Schema.put_option(:boolean_switch, :boolean,
           alias: :b,
           doc: "something about the boolean switch"

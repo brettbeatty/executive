@@ -29,10 +29,7 @@ defmodule Mix.Tasks.MockTask do
   """
 
   option_type option(), only: [:boolean_switch, :count_switch, :enum_switch, :string_switch]
-  options_type options(), except: [:ad_hoc_switch]
-
-  @optdoc "we can't build docs for ad hoc"
-  option :ad_hoc_switch, {:ad_hoc, &__MODULE__.one_less/1}, alias: :a
+  options_type options()
 
   @optdoc "something about the boolean switch"
   option :boolean_switch, :boolean, alias: :b

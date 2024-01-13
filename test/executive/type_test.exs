@@ -3,11 +3,6 @@ defmodule Executive.TypeTest do
   alias Executive.Type
 
   describe "unalias/2" do
-    test "alias :ad_hoc" do
-      params = make_ref()
-      assert Type.unalias(:ad_hoc, params) == {Executive.Types.AdHoc, params}
-    end
-
     test "alias :boolean" do
       params = make_ref()
       assert Type.unalias(:boolean, params) == {Executive.Types.Boolean, params}
