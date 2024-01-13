@@ -2,6 +2,7 @@ defmodule Executive.Type do
   @moduledoc """
   Provides a behaviour for types that can be parsed from mix task args.
   """
+  alias Executive.Schema.Option
 
   @typedoc """
   Aliases can be used in lieu of module names for built-in types.
@@ -31,9 +32,19 @@ defmodule Executive.Type do
   @type raw_type() :: :boolean | :count | :float | :integer | :string
 
   @typedoc """
-  The raw value passed to `c:parse/2` after `OptionParser` parsing.
+  The raw value passed to `c:parse/3` after `OptionParser` parsing.
   """
   @type raw_value() :: boolean() | float() | integer() | String.t()
+
+  @typedoc """
+  Some types may parse differently based on the switch provided.
+
+  Such types should implement `c:switches/3` and give switches flags
+  that will be passed into `c:capture?/2` and `c:parse/3`.
+
+  Any type that doesn't implement `c:switches/3` will receive a `nil` flag.
+  """
+  @type switch_flag() :: term() | nil
 
   @typedoc """
   Executive types implement `Executive.Type` behaviour.
@@ -44,6 +55,14 @@ defmodule Executive.Type do
   - Types can be parametrized by wrapping them in a `{type, params}` tuple.
   """
   @type t() :: alias() | module()
+
+  @doc """
+  Most types of switches capture the value following.
+
+  Some types, such as boolean, don't capture a value. These can implement
+  `c:capture?/2` to return whether a value should be captured.
+  """
+  @callback capture?(params(), switch_flag()) :: boolean()
 
   @doc """
   Each type should provide a friendly name.
@@ -67,7 +86,8 @@ defmodule Executive.Type do
   but the error messages are compiled into a larger string, so individual
   messages can be any chardata.
   """
-  @callback parse(params(), raw_value()) :: {:ok, term()} | {:error, IO.chardata()}
+  @callback parse(params(), switch_flag(), raw_value() | nil) ::
+              {:ok, term()} | {:error, IO.chardata()}
 
   @doc """
   Each type has an underlying `OptionParser` type.
@@ -75,9 +95,9 @@ defmodule Executive.Type do
   Most types will want to build on `:string`, but there can be advantages to
   starting with another raw type.
 
-  This callback will affect the type of `raw` in `c:parse/2`.
+  This callback will affect the type of `raw` in `c:parse/3`.
 
-  `c:raw_type/1` returns | `c:parse/2` receives
+  `c:raw_type/1` returns | `c:parse/3` receives
   ---------------------- | --------------------
   `:boolean`             | `t:boolean/0`
   `:count`               | `t:pos_integer/0`
@@ -89,7 +109,7 @@ defmodule Executive.Type do
   @callback raw_type(params()) :: raw_type()
 
   @doc """
-  Each type should provide a spec for the refined value returned by `c:parse/2`.
+  Each type should provide a spec for the refined value returned by `c:parse/3`.
 
   This spec should be returned as a quoted AST.
 
@@ -108,6 +128,18 @@ defmodule Executive.Type do
 
   """
   @callback spec(params()) :: Macro.t()
+
+  @doc """
+  Some types may parse differently based on the switch provided.
+
+  Such types should implement `c:switches/3` and give switches flags
+  that will be passed into `c:capture?/2` and `c:parse/3`.
+
+  Any type that doesn't implement `c:switches/3` will receive a `nil` flag.
+  """
+  @callback switches(params(), Option.name(), [Option.alias()]) :: [{String.t(), switch_flag()}]
+
+  @optional_callbacks capture?: 2, switches: 3
 
   @doc """
   Resolves alias `type` and `params` into concrete type and params.

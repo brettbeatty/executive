@@ -12,11 +12,11 @@ defmodule Executive.Types.EnumTest do
 
   describe "parse/2" do
     test "returns atom value if in list of allowed values" do
-      assert EnumType.parse([:alfa, :bravo, :charlie], "bravo") == {:ok, :bravo}
+      assert EnumType.parse([:alfa, :bravo, :charlie], nil, "bravo") == {:ok, :bravo}
     end
 
     test "returns error if value not in list of allowed values" do
-      assert {:error, message} = EnumType.parse([:alfa, :bravo, :charlie], "delta")
+      assert {:error, message} = EnumType.parse([:alfa, :bravo, :charlie], nil, "delta")
       assert to_string(message) == ~S[Expected one of (alfa, bravo, charlie), got "delta"]
     end
   end

@@ -18,8 +18,8 @@ defmodule Executive.Schema.OptionTest do
     end
 
     @impl Executive.Type
-    def parse(ref, raw) do
-      send(self(), {ref, raw: raw})
+    def parse(ref, flag, raw) do
+      send(self(), {ref, raw: raw, flag: flag})
       receive!(ref)
     end
 
@@ -132,11 +132,12 @@ defmodule Executive.Schema.OptionTest do
   describe "parse/2" do
     test "calls type's parse callback" do
       refined = make_ref()
+      flag = make_ref()
       ref = MockType.return({:ok, refined})
       option = Option.new(:my_option, {MockType, ref}, [])
 
-      assert Option.parse(option, "raw value") == {:ok, refined}
-      assert_received {^ref, raw: "raw value"}
+      assert Option.parse(option, flag, "raw value") == {:ok, refined}
+      assert_received {^ref, raw: "raw value", flag: ^flag}
     end
   end
 

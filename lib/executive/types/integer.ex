@@ -12,7 +12,7 @@ defmodule Executive.Types.Integer do
   end
 
   @impl Executive.Type
-  def parse(_params, raw) when is_integer(raw) do
+  def parse(_params, _flag, raw) when is_integer(raw) do
     {:ok, raw}
   end
 

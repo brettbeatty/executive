@@ -10,7 +10,7 @@ defmodule Executive.Types.FloatTest do
 
   describe "parse/2" do
     test "float" do
-      assert FloatType.parse([], 0.5) == {:ok, 0.5}
+      assert FloatType.parse([], nil, 0.5) == {:ok, 0.5}
     end
   end
 

@@ -4,6 +4,16 @@ defmodule Executive.Schema.Option do
   """
   alias Executive.Type
 
+  @typedoc """
+  Option aliases are one-letter atoms.
+  """
+  @type alias() :: atom()
+
+  @typedoc """
+  Option names are the keys of the parsed options.
+  """
+  @type name() :: atom()
+
   @type opts() :: [
           alias: atom() | [atom()],
           doc: String.t(),
@@ -85,12 +95,13 @@ defmodule Executive.Schema.Option do
   @doc """
   Parses `raw` using `option`'s type.
 
-  Dispatches to type's `c:Executive.Type.parse/2` implementation.
+  Dispatches to type's `c:Executive.Type.parse/3` implementation.
   """
-  @spec parse(t(), Type.raw_value()) :: {:ok, term()} | {:error, IO.chardata()}
-  def parse(option, raw) do
+  @spec parse(t(), Type.switch_flag(), Type.raw_value()) ::
+          {:ok, term()} | {:error, IO.chardata()}
+  def parse(option, flag, raw) do
     %__MODULE__{type: type, type_params: params} = option
-    type.parse(params, raw)
+    type.parse(params, flag, raw)
   end
 
   @doc """

@@ -12,7 +12,7 @@ defmodule Executive.Types.Float do
   end
 
   @impl Executive.Type
-  def parse(_params, raw) when is_float(raw) do
+  def parse(_params, _flag, raw) when is_float(raw) do
     {:ok, raw}
   end
 

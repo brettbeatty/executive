@@ -230,7 +230,7 @@ defmodule Executive.Schema do
       {refined_opts, errors} ->
         option = Map.fetch!(schema.options, name)
 
-        case Option.parse(option, raw) do
+        case Option.parse(option, nil, raw) do
           {:ok, refined} ->
             {[{name, refined} | refined_opts], errors}
 
