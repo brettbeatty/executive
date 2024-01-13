@@ -1,0 +1,25 @@
+defmodule <%= @task_module %> do
+  @shortdoc "TODO Describe this task in one line"
+  @moduledoc """
+  TODO Describe what this task does
+
+      $ mix <%= @task_name %>
+
+  """
+  use Executive.Task<%= @task_opts %>
+
+  moduledoc_append """
+  ## Command line options
+
+  #{Executive.Schema.option_docs(&1)}
+
+  """
+
+  option_type option()
+  options_type options()
+<%= @options %>
+  @impl Executive.Task
+  def run(argv, opts) do
+    # TODO implement this task
+  end
+end

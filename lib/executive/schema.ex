@@ -304,6 +304,14 @@ defmodule Executive.Schema do
       ...> |> Schema.parse!(["-m", "my string"])
       {[], my_option: "my string"}
 
+    - `:doc` - documentation for the option
+
+      iex> Schema.new()
+      ...> |> Schema.put_option(:my_option, :integer, doc: "some documentation")
+      ...> |> Schema.option_docs()
+      ...> |> to_string()
+      "  - `--my-option` - integer - some documentation"
+
     - `:required` - when true, option is required
 
       iex> Schema.new()

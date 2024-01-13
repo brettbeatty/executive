@@ -18,7 +18,7 @@ defmodule Executive.Type do
   `:uuid`    | `Executive.Types.UUID`
 
   """
-  @type alias() :: :boolean | :count | :float | :integer | :string
+  @type alias() :: :ad_hoc | :boolean | :count | :enum | :float | :integer | :string | :uuid
 
   @typedoc """
   To support parametrization, all type callbacks accept parameters.
