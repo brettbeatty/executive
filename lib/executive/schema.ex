@@ -58,7 +58,7 @@ defmodule Executive.Schema do
 
     schema
     |> option_names(opts)
-    |> Enum.map(&Option.docs(Map.fetch!(options, &1)))
+    |> Enum.map(&(options |> Map.fetch!(&1) |> Option.docs()))
     |> Enum.intersperse(?\n)
   end
 

@@ -58,7 +58,7 @@ defmodule Executive.Task.Generator do
     doc =
       if doc = Keyword.get(opts, :doc), do: ["@optdoc ", iodata_inspect(doc), "\n  "], else: []
 
-    opts = Keyword.delete(opts, :doc)
+    new_opts = Keyword.delete(opts, :doc)
     spacing = if options == [] or doc == [], do: "\n  ", else: "\n\n  "
 
     build_options(options, [
@@ -68,7 +68,7 @@ defmodule Executive.Task.Generator do
       Macro.inspect_atom(:literal, key),
       ", ",
       iodata_inspect(type),
-      build_opts(opts)
+      build_opts(new_opts)
       | chardata
     ])
   end

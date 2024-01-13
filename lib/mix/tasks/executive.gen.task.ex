@@ -62,6 +62,7 @@ defmodule Mix.Tasks.Executive.Gen.Task do
 
   """
 
+  option_type option()
   options_type options()
 
   # type switches
@@ -129,7 +130,7 @@ defmodule Mix.Tasks.Executive.Gen.Task do
   @spec parse_options(options()) ::
           {:ok, [Generator.option()], Generator.task_opts()} | {:error, String.t()}
   defp parse_options(options) do
-    case options |> Enum.reverse() |> do_parse_options() do
+    case options |> Enum.reverse() |> Enum.reduce_while({:ok, [], [], []}, &parse_options/2) do
       {:ok, parsed_options, generator_opts, []} ->
         {:ok, parsed_options, generator_opts}
 
@@ -141,31 +142,39 @@ defmodule Mix.Tasks.Executive.Gen.Task do
     end
   end
 
-  @spec do_parse_options(options()) ::
-          {:ok, [Generator.option()], Generator.opts(), Option.opts()} | {:error, String.t()}
-  defp do_parse_options(options) do
-    Enum.reduce_while(options, {:ok, [], [], []}, fn
-      {type, name}, {:ok, parsed_options, generator_opts, option_opts}
-      when type in @type_switches ->
-        option = {String.to_atom(name), type, option_opts}
-        {:cont, {:ok, [option | parsed_options], generator_opts, _option_opts = []}}
+  @spec parse_options(
+          option(),
+          {:ok, [Generator.option()], Generator.task_opts(), Option.opts()} | {:error, String.t()}
+        ) ::
+          {:halt | :cont,
+           {:ok, [Generator.option()], Generator.task_opts(), Option.opts()}
+           | {:error, String.t()}}
+  defp parse_options({type, name}, {:ok, parsed_options, generator_opts, option_opts})
+       when type in @type_switches do
+    # credo:disable-for-next-line Credo.Check.Warning.UnsafeToAtom
+    option = {String.to_atom(name), type, option_opts}
+    {:cont, {:ok, [option | parsed_options], generator_opts, _option_opts = []}}
+  end
 
-      {:alias, <<char>>}, {:ok, parsed_options, generator_opts, option_opts}
-      when char in ?a..?z ->
-        alias = String.to_atom(<<char>>)
-        {:cont, {:ok, parsed_options, generator_opts, [{:alias, alias} | option_opts]}}
+  defp parse_options({:alias, <<char>>}, {:ok, parsed_options, generator_opts, option_opts})
+       when char in ?a..?z do
+    # credo:disable-for-next-line Credo.Check.Warning.UnsafeToAtom
+    alias = String.to_atom(<<char>>)
+    {:cont, {:ok, parsed_options, generator_opts, [{:alias, alias} | option_opts]}}
+  end
 
-      {:alias, alias}, {:ok, _parsed_options, _generator_opts, _option_opts} ->
-        {:halt, {:error, "Alias must be one letter, got #{inspect(alias)}"}}
+  defp parse_options({:alias, alias}, {:ok, _parsed_options, _generator_opts, _option_opts}) do
+    {:halt, {:error, "Alias must be one letter, got #{inspect(alias)}"}}
+  end
 
-      {mod, value}, {:ok, parsed_options, generator_opts, option_opts}
-      when mod in @modifier_switches ->
-        {:cont, {:ok, parsed_options, generator_opts, [{mod, value} | option_opts]}}
+  defp parse_options({mod, value}, {:ok, parsed_options, generator_opts, option_opts})
+       when mod in @modifier_switches do
+    {:cont, {:ok, parsed_options, generator_opts, [{mod, value} | option_opts]}}
+  end
 
-      {key, value}, {:ok, parsed_options, generator_opts, option_opts}
-      when key in @opt_switches ->
-        {:cont, {:ok, parsed_options, [{key, value} | generator_opts], option_opts}}
-    end)
+  defp parse_options({key, value}, {:ok, parsed_options, generator_opts, option_opts})
+       when key in @opt_switches do
+    {:cont, {:ok, parsed_options, [{key, value} | generator_opts], option_opts}}
   end
 
   @spec switch_name(atom()) :: String.t()
