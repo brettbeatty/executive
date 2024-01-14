@@ -33,6 +33,12 @@ defmodule Executive.Schema.OptionTest do
       receive!(ref)
     end
 
+    @impl Executive.Type
+    def switches(ref, name, aliases) do
+      send(self(), {ref, name: name, aliases: aliases})
+      receive!(ref)
+    end
+
     defp receive!(ref) when is_reference(ref) do
       receive do
         {^ref, return: value} ->
@@ -176,6 +182,66 @@ defmodule Executive.Schema.OptionTest do
     test "handles single-word options" do
       option = Option.new(:option, MyType, [])
       assert Option.switch(option) == "--option"
+    end
+  end
+
+  describe "switches/1" do
+    test "creates switches for option without aliases" do
+      option = Option.new(:my_option, MyType, [])
+      assert Option.switches(option) == [{"--my-option", nil}]
+    end
+
+    test "creates switches for option with aliases" do
+      option = Option.new(:my_option, MyType, alias: :o)
+      assert Option.switches(option) == [{"--my-option", nil}, {"-o", nil}]
+    end
+
+    test "calls type's switches/2 if implemented" do
+      switches = [
+        {"--one-switch", make_ref()},
+        {"--another-switch", make_ref()},
+        {"-s", make_ref()}
+      ]
+
+      ref = MockType.return(switches)
+      option = Option.new(:my_option, {MockType, ref}, alias: [:m, :o])
+      assert Option.switches(option) == switches
+      assert_received {^ref, name: :my_option, aliases: [:m, :o]}
+    end
+  end
+
+  describe "switches/2" do
+    test "creates switch for name" do
+      assert Option.switches(:my_switch, []) == [{"--my-switch", nil}]
+    end
+
+    test "creates switches for name and aliases" do
+      expected_switches = [{"--my-switch", nil}, {"-m", nil}, {"-s", nil}]
+      assert Option.switches(:my_switch, [:m, :s]) == expected_switches
+    end
+  end
+
+  describe "switch_alias/1" do
+    test "prepends a dash" do
+      assert Option.switch_alias(:m) == "-m"
+    end
+
+    test "allows strings" do
+      assert Option.switch_alias("s") == "-s"
+    end
+  end
+
+  describe "switch_name/1" do
+    test "prepends two dashes" do
+      assert Option.switch_name(:option) == "--option"
+    end
+
+    test "replaces underscores with dashes" do
+      assert Option.switch_name(:my_switch) == "--my-switch"
+    end
+
+    test "allows strings" do
+      assert Option.switch_name("my_switch") == "--my-switch"
     end
   end
 

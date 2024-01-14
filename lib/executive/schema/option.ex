@@ -148,6 +148,72 @@ defmodule Executive.Schema.Option do
   end
 
   @doc """
+  Build the available switches for `option`.
+
+  This dispatches to type's `c:Executive.Type.switches/3` if implemented.
+  """
+  @spec switches(t()) :: [{String.t(), Type.switch_flag()}]
+  def switches(option) do
+    %__MODULE__{aliases: aliases, name: name, type: type, type_params: type_params} = option
+    Code.ensure_loaded(type)
+
+    if function_exported?(type, :switches, 3) do
+      type.switches(type_params, name, aliases)
+    else
+      switches(name, aliases)
+    end
+  end
+
+  @doc """
+  Build switches for option `name` and `aliases`.
+
+  This serves as a default implementation for `c:Executive.Type.switches/3`.
+  """
+  @spec switches(name(), [alias()]) :: [{String.t(), Type.switch_flag()}]
+  def switches(name, aliases) do
+    [{switch_name(name), nil} | Enum.map(aliases, &{switch_alias(&1), nil})]
+  end
+
+  @doc """
+  Create a switch string from option `alias`.
+
+      iex> Option.switch_alias(:s)
+      "-s"
+
+  Option `alias` can also be a string. This can be used in
+  `c:Executive.Type.switches/3` for generated switch aliases.
+
+      iex> Option.switch_alias("v")
+      "-v"
+
+  """
+  @spec switch_alias(alias() | String.t()) :: String.t()
+  def switch_alias(alias) do
+    "-#{alias}"
+  end
+
+  @doc """
+  Create a switch string from option `name`.
+
+      iex> Option.switch_name(:my_switch)
+      "--my-switch"
+
+  Option `name` can also be a string. This can be used in
+  `c:Executive.Type.switches/3` for generated switch names.
+
+      iex> Option.switch_name("no_my_switch")
+      "--no-my-switch"
+
+  """
+  @spec switch_name(name() | String.t()) :: String.t()
+  def switch_name(name) do
+    name
+    |> to_string()
+    |> String.replace("_", "-")
+    |> then(&<<"--", &1::binary>>)
+  end
+
+  @doc """
   Gets the name of `option`'s type.
 
   Dispatches to type's `c:Executive.Type.name/1` implementation.

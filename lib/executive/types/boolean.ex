@@ -9,6 +9,7 @@ defmodule Executive.Types.Boolean do
   This type is aliased as `:boolean`.
   """
   @behaviour Executive.Type
+  alias Executive.Schema.Option
 
   @impl Executive.Type
   def name(_params) do
@@ -30,5 +31,14 @@ defmodule Executive.Types.Boolean do
     quote do
       boolean()
     end
+  end
+
+  @impl Executive.Type
+  def switches(_params, name, aliases) do
+    [
+      {Option.switch_name(name), true},
+      {Option.switch_name("no_#{name}"), false}
+      | Enum.map(aliases, &{Option.switch_alias(&1), true})
+    ]
   end
 end

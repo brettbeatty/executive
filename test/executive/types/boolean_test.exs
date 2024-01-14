@@ -29,4 +29,17 @@ defmodule Executive.Types.BooleanTest do
       assert BooleanType.spec([]) == quote(do: boolean())
     end
   end
+
+  describe "switches/3" do
+    test "includes negation switch" do
+      expected_switches = [
+        {"--my-switch", true},
+        {"--no-my-switch", false},
+        {"-s", true},
+        {"-t", true}
+      ]
+
+      assert BooleanType.switches([], :my_switch, [:s, :t]) == expected_switches
+    end
+  end
 end
