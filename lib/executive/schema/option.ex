@@ -34,6 +34,34 @@ defmodule Executive.Schema.Option do
   defstruct [:aliases, :doc, :name, :required, :type, :type_params, :unique]
 
   @doc """
+  Whether `option` switch with `switch_flag` should capture the next value.
+
+  For most option types this will return true.
+
+      iex> option = Option.new(:my_option, MyType, [])
+      iex> Option.capture?(option, nil)
+      true
+
+  But types that implement `c:Executive.Type.capture?/2` may choose to return
+  false.
+
+      iex> option = Option.new(:my_option, :boolean, [])
+      iex> Option.capture?(option, true)
+      false
+
+  """
+  @spec capture?(t(), Type.switch_flag()) :: boolean()
+  def capture?(option, switch_flag) do
+    %__MODULE__{type: type, type_params: type_params} = option
+
+    if function_exported?(type, :capture?, 2) do
+      type.capture?(type_params, switch_flag)
+    else
+      true
+    end
+  end
+
+  @doc """
   Build chardata documenting `option`.
   """
   @spec docs(t()) :: IO.chardata()
@@ -155,7 +183,6 @@ defmodule Executive.Schema.Option do
   @spec switches(t()) :: [{String.t(), Type.switch_flag()}]
   def switches(option) do
     %__MODULE__{aliases: aliases, name: name, type: type, type_params: type_params} = option
-    Code.ensure_loaded(type)
 
     if function_exported?(type, :switches, 3) do
       type.switches(type_params, name, aliases)

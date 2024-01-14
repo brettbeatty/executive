@@ -12,6 +12,11 @@ defmodule Executive.Types.Boolean do
   alias Executive.Schema.Option
 
   @impl Executive.Type
+  def capture?(_params, _flag) do
+    false
+  end
+
+  @impl Executive.Type
   def name(_params) do
     "boolean"
   end

@@ -13,6 +13,12 @@ defmodule Executive.Schema.OptionTest do
     end
 
     @impl Executive.Type
+    def capture?(ref, switch_flag) do
+      send(self(), {ref, switch_flag: switch_flag})
+      receive!(ref)
+    end
+
+    @impl Executive.Type
     def name(ref) do
       receive!(ref)
     end
@@ -47,6 +53,22 @@ defmodule Executive.Schema.OptionTest do
         0 ->
           raise "no value provided"
       end
+    end
+  end
+
+  describe "capture?/2" do
+    test "defaults to true" do
+      option = Option.new(:my_option, MyType, [])
+      assert Option.capture?(option, nil) == true
+    end
+
+    test "calls type's capture?/2 if implemented" do
+      switch_flag = make_ref()
+      ref = MockType.return(false)
+      option = Option.new(:my_option, {MockType, ref}, [])
+
+      assert Option.capture?(option, switch_flag) == false
+      assert_received {^ref, switch_flag: ^switch_flag}
     end
   end
 
