@@ -37,7 +37,7 @@ defmodule Executive.Types.Enum do
   end
 
   @impl Executive.Type
-  def parse(allowed_values, raw) when is_binary(raw) do
+  def parse(allowed_values, _flag, raw) when is_binary(raw) do
     with :error <- find(allowed_values, raw) do
       {:error, ["Expected one of (", splice(allowed_values), "), got ", inspect(raw)]}
     end
@@ -56,11 +56,6 @@ defmodule Executive.Types.Enum do
 
   defp find([], _value) do
     :error
-  end
-
-  @impl Executive.Type
-  def raw_type(_allowed_values) do
-    :string
   end
 
   @impl Executive.Type

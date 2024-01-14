@@ -9,14 +9,12 @@ defmodule Executive.Types.IntegerTest do
   end
 
   describe "parse/2" do
-    test "integer" do
-      assert IntegerType.parse([], 12) == {:ok, 12}
+    test "parses integer" do
+      assert IntegerType.parse([], nil, "12") == {:ok, 12}
     end
-  end
 
-  describe "raw_type/1" do
-    test ":integer" do
-      assert IntegerType.raw_type([]) == :integer
+    test "error if not an integer" do
+      assert IntegerType.parse([], nil, "4.0") == :error
     end
   end
 

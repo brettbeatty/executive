@@ -28,7 +28,7 @@ defmodule Executive.Types.UUID do
   end
 
   @impl Executive.Type
-  def parse(_params, raw) do
+  def parse(_params, _flag, raw) do
     uppercase = String.upcase(raw)
 
     with <<a::8-bytes, ?-, b::4-bytes, ?-, c::4-bytes, ?-, d::4-bytes, ?-, e::12-bytes>> <-
@@ -41,13 +41,8 @@ defmodule Executive.Types.UUID do
       {:ok, raw}
     else
       _not_uuid ->
-        {:error, ["Expected type UUID, got ", inspect(raw)]}
+        :error
     end
-  end
-
-  @impl Executive.Type
-  def raw_type(_params) do
-    :string
   end
 
   @impl Executive.Type

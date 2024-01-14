@@ -9,14 +9,12 @@ defmodule Executive.Types.FloatTest do
   end
 
   describe "parse/2" do
-    test "float" do
-      assert FloatType.parse([], 0.5) == {:ok, 0.5}
+    test "parses float" do
+      assert FloatType.parse([], nil, "0.5") == {:ok, 0.5}
     end
-  end
 
-  describe "raw_type/1" do
-    test ":float" do
-      assert FloatType.raw_type([]) == :float
+    test "error if not a float" do
+      assert FloatType.parse([], nil, "5x") == :error
     end
   end
 

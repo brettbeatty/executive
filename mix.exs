@@ -19,9 +19,7 @@ defmodule Executive.MixProject do
         extras: ["README.md"],
         groups_for_modules: [
           Types: [
-            Executive.Types.AdHoc,
             Executive.Types.Boolean,
-            Executive.Types.Count,
             Executive.Types.Enum,
             Executive.Types.Float,
             Executive.Types.Integer,

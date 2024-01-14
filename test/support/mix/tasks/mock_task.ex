@@ -24,21 +24,15 @@ defmodule Mix.Tasks.MockTask do
   moduledoc_append """
   ## I'm Not Sure These Will Get Used
 
-  #{Executive.Schema.option_docs(&1, only: [:count_switch, :float_switch])}
+  #{Executive.Schema.option_docs(&1, only: [:float_switch])}
 
   """
 
-  option_type option(), only: [:boolean_switch, :count_switch, :enum_switch, :string_switch]
-  options_type options(), except: [:ad_hoc_switch]
-
-  @optdoc "we can't build docs for ad hoc"
-  option :ad_hoc_switch, {:ad_hoc, &__MODULE__.one_less/1}, alias: :a
+  option_type option(), only: [:boolean_switch, :enum_switch, :string_switch]
+  options_type options()
 
   @optdoc "something about the boolean switch"
   option :boolean_switch, :boolean, alias: :b
-
-  @optdoc "counts stuff"
-  option :count_switch, :count, alias: :c
 
   @optdoc "behaves differently based on alfa vs bravo"
   option :enum_switch, {:enum, [:alfa, :bravo]}, alias: :e

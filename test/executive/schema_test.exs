@@ -16,7 +16,6 @@ defmodule Executive.SchemaTest do
       actual =
         Schema.new()
         |> Schema.put_option(:my_boolean, :boolean, alias: :b)
-        |> Schema.put_option(:my_count, :count, doc: "counts how many times you use it")
         |> Schema.put_option(:my_string, :string, required: true, doc: "some docs here")
         |> Schema.option_docs()
         |> to_string()
@@ -24,7 +23,6 @@ defmodule Executive.SchemaTest do
       expected =
         String.trim_trailing("""
           - `--my-boolean` (`-b`) - boolean
-          - `--my-count` - count - counts how many times you use it
           - `--my-string` - string, required - some docs here
         """)
 
@@ -94,14 +92,14 @@ defmodule Executive.SchemaTest do
     test "supports :except" do
       actual =
         Schema.new()
-        |> Schema.put_option(:my_count, :count)
+        |> Schema.put_option(:my_boolean, :boolean)
         |> Schema.put_option(:my_float, :float)
         |> Schema.put_option(:my_string, :string)
         |> Schema.option_typespec(except: [:my_float])
 
       expected =
         quote do
-          {:my_count, pos_integer()} | {:my_string, String.t()}
+          {:my_boolean, boolean()} | {:my_string, String.t()}
         end
 
       assert Macro.to_string(actual) == Macro.to_string(expected)
@@ -110,14 +108,14 @@ defmodule Executive.SchemaTest do
     test "supports :only" do
       actual =
         Schema.new()
-        |> Schema.put_option(:my_ad_hoc, {:ad_hoc, fn :spec -> quote(do: pid()) end})
         |> Schema.put_option(:my_enum, {:enum, [:x, :y]})
+        |> Schema.put_option(:my_float, :float)
         |> Schema.put_option(:my_integer, :integer)
-        |> Schema.option_typespec(only: [:my_integer, :my_ad_hoc])
+        |> Schema.option_typespec(only: [:my_integer, :my_float])
 
       expected =
         quote do
-          {:my_integer, integer()} | {:my_ad_hoc, pid()}
+          {:my_integer, integer()} | {:my_float, float()}
         end
 
       assert Macro.to_string(actual) == Macro.to_string(expected)
@@ -128,14 +126,13 @@ defmodule Executive.SchemaTest do
     test "builds typespec for parsed options" do
       actual =
         Schema.new()
-        |> Schema.put_option(:my_ad_hoc, {:ad_hoc, fn :spec -> quote(do: reference()) end})
         |> Schema.put_option(:my_boolean, :boolean)
         |> Schema.put_option(:my_float, :float)
         |> Schema.options_typespec()
 
       expected =
         quote do
-          [my_ad_hoc: reference(), my_boolean: boolean(), my_float: float()]
+          [my_boolean: boolean(), my_float: float()]
         end
 
       assert Macro.to_string(actual) == Macro.to_string(expected)
@@ -144,14 +141,14 @@ defmodule Executive.SchemaTest do
     test "supports :except" do
       actual =
         Schema.new()
-        |> Schema.put_option(:my_count, :count)
+        |> Schema.put_option(:my_float, :float)
         |> Schema.put_option(:my_integer, :integer)
         |> Schema.put_option(:my_uuid, :uuid)
         |> Schema.options_typespec(except: [:my_uuid])
 
       expected =
         quote do
-          [my_count: pos_integer(), my_integer: integer()]
+          [my_float: float(), my_integer: integer()]
         end
 
       assert Macro.to_string(actual) == Macro.to_string(expected)
@@ -175,24 +172,6 @@ defmodule Executive.SchemaTest do
   end
 
   describe "parse/2" do
-    test "handles ad hoc switches" do
-      refined = make_ref()
-
-      type = fn
-        :name -> "ad hoc type"
-        {:parse, "my raw value"} -> {:ok, refined}
-        :raw_type -> :string
-        :spec -> quote(do: reference())
-      end
-
-      result =
-        Schema.new()
-        |> Schema.put_option(:my_option, {:ad_hoc, type})
-        |> Schema.parse(["--my-option", "my raw value"])
-
-      assert result == {:ok, [], my_option: refined}
-    end
-
     test "handles boolean switches" do
       result =
         Schema.new()
@@ -209,15 +188,6 @@ defmodule Executive.SchemaTest do
         |> Schema.parse(["--no-my-option"])
 
       assert result == {:ok, [], my_option: false}
-    end
-
-    test "handles count switches" do
-      result =
-        Schema.new()
-        |> Schema.put_option(:my_option, :count)
-        |> Schema.parse(["--my-option", "--my-option", "--my-option"])
-
-      assert result == {:ok, [], my_option: 3}
     end
 
     test "handles enum switches" do
@@ -365,13 +335,13 @@ defmodule Executive.SchemaTest do
     test "errors when required options not given" do
       result =
         Schema.new()
-        |> Schema.put_option(:my_option, :count, required: true)
+        |> Schema.put_option(:my_option, :uuid, required: true)
         |> Schema.parse([])
 
       expected_message =
         String.trim("""
         1 error found!
-        --my-option : Missing argument of type count
+        --my-option : Missing argument of type UUID
         """)
 
       assert {:error, error} = result
@@ -413,9 +383,9 @@ defmodule Executive.SchemaTest do
         String.trim("""
         4 errors found!
         --my-option : Missing argument of type string
-        --another-option : Expected type integer, got "not an integer"
+        -a : Expected type integer, got "not an integer"
         -b : Unknown option
-        --one-more-option : Expected one of (x, y, z), got "w"
+        -o : Expected one of (x, y, z), got "w"
         """)
 
       assert_raise ParseError, expected_message, fn ->

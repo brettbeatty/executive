@@ -117,13 +117,13 @@ defmodule Executive.Task do
 
   Supports options `:only` and `:except`.
 
-      option :my_count, :count
+      option :my_boolean, :boolean
       option :my_float, :float
       option :my_integer, :integer
 
       option_type option(), except: [:my_integer]
       # Equivalent:
-      # @type option() :: {:my_count, pos_integer()} | {:my_float, float()}
+      # @type option() :: {:my_boolean, boolean()} | {:my_float, float()}
 
   See `Executive.Schema.option_typespec/2`.
   """
@@ -148,7 +148,7 @@ defmodule Executive.Task do
 
   Supports options `:only` and `:except`.
 
-      option :my_count, :count
+      option :my_boolean, :boolean
       option :my_enum, {:enum, [:enabled, :disabled]}
       option :my_string, :string
 
