@@ -22,8 +22,8 @@ defmodule Executive.Types.Boolean do
   end
 
   @impl Executive.Type
-  def parse(_params, _flag, raw) when is_boolean(raw) do
-    {:ok, raw}
+  def parse(_params, flag, _raw) when is_boolean(flag) do
+    {:ok, flag}
   end
 
   @impl Executive.Type

@@ -7,6 +7,21 @@ defmodule Executive.ParseError do
 
   defexception [:switch_errors]
 
+  @spec check_empty(t()) :: :ok | {:error, t()}
+  def check_empty(error)
+  def check_empty(%__MODULE__{switch_errors: []}), do: :ok
+  def check_empty(error), do: {:error, Map.update!(error, :switch_errors, &Enum.reverse/1)}
+
+  @spec new() :: t()
+  def new do
+    exception([])
+  end
+
+  @spec put_switch_error(t(), String.t(), IO.chardata()) :: t()
+  def put_switch_error(error, switch, message) do
+    Map.update!(error, :switch_errors, &[{switch, message} | &1])
+  end
+
   @impl Exception
   def exception(switch_errors) do
     %__MODULE__{switch_errors: switch_errors}

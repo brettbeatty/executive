@@ -87,7 +87,7 @@ defmodule Executive.Type do
   messages can be any chardata.
   """
   @callback parse(params(), switch_flag(), raw_value() | nil) ::
-              {:ok, term()} | {:error, IO.chardata()}
+              {:ok, term()} | :error | {:error, IO.chardata()}
 
   @doc """
   Each type has an underlying `OptionParser` type.

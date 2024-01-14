@@ -41,7 +41,7 @@ defmodule Executive.Types.UUID do
       {:ok, raw}
     else
       _not_uuid ->
-        {:error, ["Expected type UUID, got ", inspect(raw)]}
+        :error
     end
   end
 

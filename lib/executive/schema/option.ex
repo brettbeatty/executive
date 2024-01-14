@@ -129,7 +129,10 @@ defmodule Executive.Schema.Option do
           {:ok, term()} | {:error, IO.chardata()}
   def parse(option, flag, raw) do
     %__MODULE__{type: type, type_params: params} = option
-    type.parse(params, flag, raw)
+
+    with :error <- type.parse(params, flag, raw) do
+      {:error, ["Expected type ", type_name(option), ", got ", inspect(raw)]}
+    end
   end
 
   @doc """

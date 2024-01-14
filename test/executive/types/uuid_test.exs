@@ -16,8 +16,7 @@ defmodule Executive.Types.UUIDTest do
     end
 
     test "returns error if format does not match" do
-      assert {:error, message} = UUIDType.parse([], nil, "afad1dfb")
-      assert to_string(message) == ~S[Expected type UUID, got "afad1dfb"]
+      assert UUIDType.parse([], nil, "afad1dfb") == :error
     end
   end
 

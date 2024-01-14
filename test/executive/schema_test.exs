@@ -383,9 +383,9 @@ defmodule Executive.SchemaTest do
         String.trim("""
         4 errors found!
         --my-option : Missing argument of type string
-        --another-option : Expected type integer, got "not an integer"
+        -a : Expected type integer, got "not an integer"
         -b : Unknown option
-        --one-more-option : Expected one of (x, y, z), got "w"
+        -o : Expected one of (x, y, z), got "w"
         """)
 
       assert_raise ParseError, expected_message, fn ->

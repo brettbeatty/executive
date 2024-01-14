@@ -12,8 +12,17 @@ defmodule Executive.Types.Float do
   end
 
   @impl Executive.Type
-  def parse(_params, _flag, raw) when is_float(raw) do
-    {:ok, raw}
+  def parse(_params, _flag, raw) do
+    case Float.parse(raw) do
+      {refined, ""} ->
+        {:ok, refined}
+
+      {_integer, _remaining} ->
+        :error
+
+      :error ->
+        :error
+    end
   end
 
   @impl Executive.Type

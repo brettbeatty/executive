@@ -20,11 +20,11 @@ defmodule Executive.Types.BooleanTest do
 
   describe "parse/2" do
     test "true" do
-      assert BooleanType.parse([], nil, true) == {:ok, true}
+      assert BooleanType.parse([], true, nil) == {:ok, true}
     end
 
     test "false" do
-      assert BooleanType.parse([], nil, false) == {:ok, false}
+      assert BooleanType.parse([], false, nil) == {:ok, false}
     end
   end
 
