@@ -75,13 +75,13 @@ defmodule Executive.Task do
   """
   defmacro moduledoc_append(addendum) do
     quote do
-      with_schema fn schema ->
+      with_schema(fn schema ->
         addendum = (&unquote(addendum)).(schema)
 
         quote do
           @moduledoc @moduledoc <> unquote(addendum)
         end
-      end
+      end)
     end
   end
 
@@ -169,14 +169,14 @@ defmodule Executive.Task do
           Macro.t()
   defp build_option_type(fun, name, opts) do
     quote do
-      with_schema fn schema ->
+      with_schema(fn schema ->
         name = unquote(Macro.escape(name))
         typespec = Executive.Schema.unquote(fun)(schema, unquote(opts))
 
         quote do
           @type unquote(name) :: unquote(typespec)
         end
-      end
+      end)
     end
   end
 
@@ -200,10 +200,10 @@ defmodule Executive.Task do
   end
 
   @doc """
-  Create a hook for adding code to a module after schema has compiled.
+  Create a hook for adding code to a module after schema has been built.
 
-  Takes a function to be called with the schema. This function returns code in
-  an AST, which can be built using `quote/2`.
+  Takes a function to be called with the schema. This function returns quoted
+  code to be injected in the module.
 
       with_schema fn schema ->
         typespec = Executive.Schema.options_typespec(schema)
@@ -213,21 +213,23 @@ defmodule Executive.Task do
         end
       end
 
-  Any unquoted values will need to be an AST. To inject the schema itself, for
-  example, it would need to be wrapped in `Macro.escape/2`.
+  Values injected through unquote must be valid quoted expressions. The default
+  `:value` mode works well for gathering data from the schema and building code
+  with it. For injecting the schema itself, the `:ast` mode instead gives `fun`
+  a quoted schema.
 
-      with_schema fn schema ->
+      with_schema :ast, fn schema ->
         quote do
           def schema do
-            unquote(Macro.escape(schema))
+            unquote(schema)
           end
         end
       end
 
   """
-  defmacro with_schema(fun) do
+  defmacro with_schema(mode \\ :value, fun) do
     {fun, _binding} = Module.eval_quoted(__CALLER__, fun)
-    :ok = Module.put_attribute(__CALLER__.module, :executive_task_with_schema, fun)
+    :ok = Module.put_attribute(__CALLER__.module, :executive_task_with_schema, {mode, fun})
   end
 
   @spec _put_option(module(), Macro.t(), Macro.t(), keyword()) :: :ok
@@ -255,7 +257,14 @@ defmodule Executive.Task do
     schema_ast = build_schema(env.module)
     {schema, _binding} = Module.eval_quoted(env, schema_ast)
     hooks = env.module |> Module.get_attribute(:executive_task_with_schema, []) |> Enum.reverse()
-    blocks = for hook <- hooks, do: hook.(schema)
+
+    blocks =
+      for {type, fun} <- hooks do
+        case type do
+          :value -> fun.(schema)
+          :ast -> fun.(schema_ast)
+        end
+      end
 
     quote do
       unquote_splicing(blocks)
@@ -304,20 +313,21 @@ defmodule Executive.Task do
           option_type: 2,
           options_type: 1,
           options_type: 2,
-          with_schema: 1
+          with_schema: 1,
+          with_schema: 2
         ]
 
       @before_compile Executive.Task
       @behaviour Executive.Task
 
-      with_schema fn schema ->
+      with_schema :ast, fn schema ->
         setup = unquote(Macro.escape(setup))
 
         quote do
           @impl Mix.Task
           def run(argv) do
             unquote(setup)
-            Executive.Task._run(__MODULE__, unquote(Macro.escape(schema)), argv)
+            Executive.Task._run(__MODULE__, unquote(schema), argv)
           end
         end
       end

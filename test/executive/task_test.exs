@@ -174,6 +174,20 @@ defmodule Executive.TaskTest do
   end
 
   describe "with_schema/1" do
+    test "allows operations on actual schema" do
+      expected_options = [
+        :boolean_switch,
+        :enum_switch,
+        :float_switch,
+        :integer_switch,
+        :string_switch
+      ]
+
+      assert MockTask.options() == expected_options
+    end
+  end
+
+  describe "with_schema/2" do
     test "allows injecting schema into module" do
       expected_schema =
         Schema.new()

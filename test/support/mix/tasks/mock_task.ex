@@ -47,8 +47,14 @@ defmodule Mix.Tasks.MockTask do
   option :string_switch, :string, alias: :s
 
   with_schema fn schema ->
-    schema = Macro.escape(schema)
+    options = schema.options |> Map.keys() |> Enum.sort()
 
+    quote do
+      def options, do: unquote(options)
+    end
+  end
+
+  with_schema :ast, fn schema ->
     quote do
       def schema, do: unquote(schema)
     end
@@ -57,21 +63,5 @@ defmodule Mix.Tasks.MockTask do
   @impl Executive.Task
   def run(argv, opts) do
     {argv, opts}
-  end
-
-  def one_less(request) do
-    case request do
-      :name ->
-        "one less"
-
-      {:parse, raw} ->
-        {:ok, raw - 1}
-
-      :raw_type ->
-        :integer
-
-      :spec ->
-        quote(do: integer())
-    end
   end
 end
