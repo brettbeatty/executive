@@ -18,12 +18,6 @@ defmodule Executive.Types.IntegerTest do
     end
   end
 
-  describe "raw_type/1" do
-    test ":integer" do
-      assert IntegerType.raw_type([]) == :integer
-    end
-  end
-
   describe "spec/1" do
     test "integer()" do
       assert IntegerType.spec([]) == quote(do: integer())

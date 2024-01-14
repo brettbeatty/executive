@@ -28,12 +28,6 @@ defmodule Executive.Types.BooleanTest do
     end
   end
 
-  describe "raw_type/1" do
-    test ":boolean" do
-      assert BooleanType.raw_type([]) == :boolean
-    end
-  end
-
   describe "spec/1" do
     test "boolean()" do
       assert BooleanType.spec([]) == quote(do: boolean())

@@ -3,20 +3,28 @@ defmodule Executive.ParseError do
   An error with parsing mix task args accoring to an `Executive.Schema`.
   """
 
+  @typedoc """
+  The internals of this struct shouldn't need touched directly.
+
+  The error message can be retrieved with `Exception.message/1`.
+  """
   @type t() :: %__MODULE__{switch_errors: [{String.t(), IO.chardata()}]}
 
   defexception [:switch_errors]
 
+  @doc false
   @spec check_empty(t()) :: :ok | {:error, t()}
   def check_empty(error)
   def check_empty(%__MODULE__{switch_errors: []}), do: :ok
   def check_empty(error), do: {:error, Map.update!(error, :switch_errors, &Enum.reverse/1)}
 
+  @doc false
   @spec new() :: t()
   def new do
     exception([])
   end
 
+  @doc false
   @spec put_switch_error(t(), String.t(), IO.chardata()) :: t()
   def put_switch_error(error, switch, message) do
     Map.update!(error, :switch_errors, &[{switch, message} | &1])

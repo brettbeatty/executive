@@ -14,12 +14,21 @@ defmodule Executive.Schema.Option do
   """
   @type name() :: atom()
 
+  @typedoc """
+  These options are used when creating an option.
+
+  They are documented in further detail in `Executive.Schema.put_option/4` docs.
+  """
   @type opts() :: [
           alias: atom() | [atom()],
           doc: String.t(),
           required: boolean(),
           unique: boolean()
         ]
+
+  @typedoc """
+  Options can be parsed from mix task args.
+  """
   @type t() :: %__MODULE__{
           aliases: [atom()],
           doc: String.t(),
@@ -29,6 +38,10 @@ defmodule Executive.Schema.Option do
           type_params: term(),
           unique: boolean()
         }
+
+  @typedoc """
+  Types can either be a type module or parametrized with a tuple.
+  """
   @type type() :: Type.t() | {Type.t(), Type.params()}
 
   defstruct [:aliases, :doc, :name, :required, :type, :type_params, :unique]
@@ -125,30 +138,13 @@ defmodule Executive.Schema.Option do
 
   Dispatches to type's `c:Executive.Type.parse/3` implementation.
   """
-  @spec parse(t(), Type.switch_flag(), Type.raw_value()) ::
+  @spec parse(t(), Type.switch_flag(), String.t() | nil) ::
           {:ok, term()} | {:error, IO.chardata()}
   def parse(option, flag, raw) do
     %__MODULE__{type: type, type_params: params} = option
 
     with :error <- type.parse(params, flag, raw) do
       {:error, ["Expected type ", type_name(option), ", got ", inspect(raw)]}
-    end
-  end
-
-  @doc """
-  Gets the raw type of `option`'s type.
-
-  Dispatches to type's `c:Executive.Type.raw_type/1` implementation.
-  """
-  @spec raw_type(t()) :: Type.raw_type()
-  def raw_type(option) do
-    %__MODULE__{type: type, type_params: params, unique: unique} = option
-    raw_type = type.raw_type(params)
-
-    if unique || raw_type == :count do
-      raw_type
-    else
-      [:keep, raw_type]
     end
   end
 

@@ -18,12 +18,6 @@ defmodule Executive.Types.FloatTest do
     end
   end
 
-  describe "raw_type/1" do
-    test ":float" do
-      assert FloatType.raw_type([]) == :float
-    end
-  end
-
   describe "spec/1" do
     test "float()" do
       assert FloatType.spec([]) == quote(do: float())

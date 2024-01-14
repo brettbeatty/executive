@@ -14,12 +14,6 @@ defmodule Executive.Types.StringTest do
     end
   end
 
-  describe "raw_type/1" do
-    test ":string" do
-      assert StringType.raw_type([]) == :string
-    end
-  end
-
   describe "spec/1" do
     test "string()" do
       assert StringType.spec([]) == quote(do: String.t())

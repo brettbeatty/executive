@@ -20,12 +20,6 @@ defmodule Executive.Types.UUIDTest do
     end
   end
 
-  describe "raw_type/1" do
-    test "string" do
-      assert UUIDType.raw_type([]) == :string
-    end
-  end
-
   describe "spec/1" do
     test "<<_::288>>" do
       spec = UUIDType.spec([])

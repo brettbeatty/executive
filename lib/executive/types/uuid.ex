@@ -46,11 +46,6 @@ defmodule Executive.Types.UUID do
   end
 
   @impl Executive.Type
-  def raw_type(_params) do
-    :string
-  end
-
-  @impl Executive.Type
   def spec(_params) do
     quote do
       <<_::288>>

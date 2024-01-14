@@ -21,12 +21,6 @@ defmodule Executive.Types.EnumTest do
     end
   end
 
-  describe "raw_type/1" do
-    test "string" do
-      assert EnumType.raw_type([:alfa, :bravo]) == :string
-    end
-  end
-
   describe "spec/1" do
     test "union of allowed values" do
       expected = quote(do: :alfa | :bravo | :charlie | :delta | :echo)

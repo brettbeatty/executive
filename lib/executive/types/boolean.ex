@@ -2,9 +2,29 @@ defmodule Executive.Types.Boolean do
   @moduledoc """
   Boolean options refine as `true` or `false` depending on switch presence.
 
-  Option is true when switch is provided or false when its
-  [negation switch](https://hexdocs.pm/elixir/OptionParser.html#parse/2-negation-switches)
-  is used.
+  Options parse as true when the primary switch is used.
+
+      iex> alias Executive.Schema
+      iex> Schema.new()
+      ...> |> Schema.put_option(:my_option, :boolean)
+      ...> |> Schema.parse(["--my-option"])
+      {:ok, [], [my_option: true]}
+
+  Options parse as false when the negation switch is used.
+
+      iex> alias Executive.Schema
+      iex> Schema.new()
+      ...> |> Schema.put_option(:my_option, :boolean)
+      ...> |> Schema.parse(["--no-my-option"])
+      {:ok, [], [my_option: false]}
+
+  Any aliases for the option are seen as truthy.
+
+      iex> alias Executive.Schema
+      iex> Schema.new()
+      ...> |> Schema.put_option(:my_option, :boolean, alias: :o)
+      ...> |> Schema.parse(["-o"])
+      {:ok, [], [my_option: true]}
 
   This type is aliased as `:boolean`.
   """
@@ -24,11 +44,6 @@ defmodule Executive.Types.Boolean do
   @impl Executive.Type
   def parse(_params, flag, _raw) when is_boolean(flag) do
     {:ok, flag}
-  end
-
-  @impl Executive.Type
-  def raw_type(_params) do
-    :boolean
   end
 
   @impl Executive.Type

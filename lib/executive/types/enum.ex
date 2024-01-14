@@ -59,11 +59,6 @@ defmodule Executive.Types.Enum do
   end
 
   @impl Executive.Type
-  def raw_type(_allowed_values) do
-    :string
-  end
-
-  @impl Executive.Type
   def spec(allowed_values)
   def spec([last]), do: last
   def spec([head | tail]), do: {:|, [], [head, spec(tail)]}

@@ -2,6 +2,12 @@ defmodule Executive.Types.Integer do
   @moduledoc """
   Integers are whole numbers.
 
+      iex> alias Executive.Schema
+      iex> Schema.new()
+      ...> |> Schema.put_option(:my_option, :integer)
+      ...> |> Schema.parse(["--my-option", "4"])
+      {:ok, [], [my_option: 4]}
+
   This type is aliased as `:integer`.
   """
   @behaviour Executive.Type
@@ -23,11 +29,6 @@ defmodule Executive.Types.Integer do
       :error ->
         :error
     end
-  end
-
-  @impl Executive.Type
-  def raw_type(_params) do
-    :integer
   end
 
   @impl Executive.Type

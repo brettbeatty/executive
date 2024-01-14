@@ -30,11 +30,6 @@ defmodule Executive.Schema.OptionTest do
     end
 
     @impl Executive.Type
-    def raw_type(ref) do
-      receive!(ref)
-    end
-
-    @impl Executive.Type
     def spec(ref) do
       receive!(ref)
     end
@@ -166,22 +161,6 @@ defmodule Executive.Schema.OptionTest do
 
       assert Option.parse(option, flag, "raw value") == {:ok, refined}
       assert_received {^ref, raw: "raw value", flag: ^flag}
-    end
-  end
-
-  describe "raw_type/1" do
-    test "gets type's raw type" do
-      ref = MockType.return(:float)
-      option = Option.new(:my_option, {MockType, ref}, [])
-
-      assert Option.raw_type(option) == :float
-    end
-
-    test "includes :keep if unique: false" do
-      ref = MockType.return(:string)
-      option = Option.new(:my_option, {MockType, ref}, unique: false)
-
-      assert Option.raw_type(option) == [:keep, :string]
     end
   end
 
