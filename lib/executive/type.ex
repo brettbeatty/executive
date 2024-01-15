@@ -7,14 +7,17 @@ defmodule Executive.Type do
   @typedoc """
   Aliases can be used in lieu of module names for built-in types.
 
-  Alias      | Module
-  ---------- | ------
-  `:boolean` | `Executive.Types.Boolean`
-  `:enum`    | `Executive.Types.Enum`
-  `:float`   | `Executive.Types.Float`
-  `:integer` | `Executive.Types.Integer`
-  `:string`  | `Executive.Types.String`
-  `:uuid`    | `Executive.Types.UUID`
+  Alias              | Type
+  ------------------ | ----
+  `:boolean`         | `Executive.Types.Boolean`
+  `:enum`            | `Executive.Types.Enum`
+  `:float`           | `Executive.Types.Float`
+  `:neg_integer`     | `{Executive.Types.Integer, max: -1}`
+  `:non_neg_integer` | `{Executive.Types.Integer, min: 0}`
+  `:pos_integer`     | `{Executive.Types.Integer, min: 1}`
+  `:integer`         | `Executive.Types.Integer`
+  `:string`          | `Executive.Types.String`
+  `:uuid`            | `Executive.Types.UUID`
 
   """
   @type alias() :: :boolean | :enum | :float | :integer | :string | :uuid
@@ -155,6 +158,9 @@ defmodule Executive.Type do
   def unalias(:enum, params), do: {Executive.Types.Enum, params}
   def unalias(:float, params), do: {Executive.Types.Float, params}
   def unalias(:integer, params), do: {Executive.Types.Integer, params}
+  def unalias(:neg_integer, _params), do: {Executive.Types.Integer, max: -1}
+  def unalias(:non_neg_integer, _params), do: {Executive.Types.Integer, min: 0}
+  def unalias(:pos_integer, _params), do: {Executive.Types.Integer, min: 1}
   def unalias(:string, params), do: {Executive.Types.String, params}
   def unalias(:uuid, params), do: {Executive.Types.UUID, params}
   def unalias(module, params) when is_atom(module), do: {module, params}

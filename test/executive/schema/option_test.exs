@@ -138,6 +138,11 @@ defmodule Executive.Schema.OptionTest do
       assert %Option{type: Executive.Types.Integer} = Option.new(:my_option, :integer, [])
     end
 
+    test "resolves more-complex type aliases" do
+      assert %Option{type: Executive.Types.Integer, type_params: [max: -1]} =
+               Option.new(:my_option, :neg_integer, [])
+    end
+
     test "supports :alias option" do
       assert %Option{aliases: [:o]} = Option.new(:my_option, MyType, alias: :o)
       assert %Option{aliases: [:m, :o]} = Option.new(:my_option, MyType, alias: [:m, :o])

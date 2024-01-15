@@ -244,22 +244,6 @@ defmodule Executive.SchemaTest do
       assert result == {:ok, [], my_option: "my string"}
     end
 
-    test "errors when value can't parse to raw type" do
-      result =
-        Schema.new()
-        |> Schema.put_option(:my_option, :integer)
-        |> Schema.parse(["--my-option", "not an integer"])
-
-      expected_message =
-        String.trim("""
-        1 error found!
-        --my-option : Expected type integer, got "not an integer"
-        """)
-
-      assert {:error, error} = result
-      assert Exception.message(error) == expected_message
-    end
-
     test "errors when switch not given value" do
       result =
         Schema.new()

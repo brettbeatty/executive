@@ -18,6 +18,18 @@ defmodule Executive.TypeTest do
       assert Type.unalias(:float, params) == {Executive.Types.Float, params}
     end
 
+    test "alias :neg_integer" do
+      assert Type.unalias(:neg_integer, make_ref()) == {Executive.Types.Integer, max: -1}
+    end
+
+    test "alias :non_neg_integer" do
+      assert Type.unalias(:non_neg_integer, make_ref()) == {Executive.Types.Integer, min: 0}
+    end
+
+    test "alias :pos_integer" do
+      assert Type.unalias(:pos_integer, make_ref()) == {Executive.Types.Integer, min: 1}
+    end
+
     test "alias :integer" do
       params = make_ref()
       assert Type.unalias(:integer, params) == {Executive.Types.Integer, params}

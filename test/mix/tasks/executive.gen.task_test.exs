@@ -132,6 +132,30 @@ defmodule Mix.Tasks.Executive.Gen.TaskTest do
       """)
     end
 
+    test "accepts negative integer options" do
+      generate("something.do", neg_integer: :my_integer)
+
+      expect_file("something.do", "Something.Do", """
+        option :my_integer, :neg_integer
+      """)
+    end
+
+    test "accepts non-negative integer options" do
+      generate("something.do", non_neg_integer: :my_integer)
+
+      expect_file("something.do", "Something.Do", """
+        option :my_integer, :non_neg_integer
+      """)
+    end
+
+    test "accepts positive integer options" do
+      generate("something.do", pos_integer: :my_integer)
+
+      expect_file("something.do", "Something.Do", """
+        option :my_integer, :pos_integer
+      """)
+    end
+
     test "accepts integer options" do
       generate("something.do", integer: :my_integer)
 

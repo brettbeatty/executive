@@ -23,7 +23,7 @@ defmodule Mix.Tasks.Executive.Gen.Task do
   to the generated task. The type of the option is the
   [alias](`t:Executive.Type.alias/0`) of the same name as the switch.
 
-  #{option_docs(&1, only: [:boolean, :float, :integer, :string, :uuid])}
+  #{option_docs(&1, only: [:boolean, :float, :neg_integer, :non_neg_integer, :pos_integer, :integer, :string, :uuid])}
 
   Running the following task
 
@@ -71,6 +71,15 @@ defmodule Mix.Tasks.Executive.Gen.Task do
 
   @optdoc "See `Executive.Types.Float`"
   option :float, :string, unique: false
+
+  @optdoc "See `Executive.Types.Integer`"
+  option :neg_integer, :string, unique: false
+
+  @optdoc "See `Executive.Types.Integer`"
+  option :non_neg_integer, :string, unique: false
+
+  @optdoc "See `Executive.Types.Integer`"
+  option :pos_integer, :string, unique: false
 
   @optdoc "See `Executive.Types.Integer`"
   option :integer, :string, unique: false
@@ -122,7 +131,16 @@ defmodule Mix.Tasks.Executive.Gen.Task do
 
   @modifier_switches [:alias, :doc, :required, :unique]
   @opt_switches [:start_application]
-  @type_switches [:boolean, :float, :integer, :string, :uuid]
+  @type_switches [
+    :boolean,
+    :float,
+    :neg_integer,
+    :non_neg_integer,
+    :pos_integer,
+    :integer,
+    :string,
+    :uuid
+  ]
 
   @spec parse_options(options()) ::
           {:ok, [Generator.option()], Generator.task_opts()} | {:error, String.t()}
