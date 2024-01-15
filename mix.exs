@@ -19,6 +19,7 @@ defmodule Executive.MixProject do
         extras: ["README.md"],
         groups_for_modules: [
           Types: [
+            Executive.Types.Base,
             Executive.Types.Boolean,
             Executive.Types.Date,
             Executive.Types.DateTime,

@@ -116,6 +116,22 @@ defmodule Mix.Tasks.Executive.Gen.TaskTest do
       """)
     end
 
+    test "accepts base32 options" do
+      generate("something.do", base32: :my_base32)
+
+      expect_file("something.do", "Something.Do", """
+        option :my_base32, {:base, :"32"}
+      """)
+    end
+
+    test "accepts base64 options" do
+      generate("something.do", base64: :my_base64)
+
+      expect_file("something.do", "Something.Do", """
+        option :my_base64, {:base, :"64"}
+      """)
+    end
+
     test "accepts boolean options" do
       generate("something.do", boolean: :my_boolean)
 
@@ -124,11 +140,51 @@ defmodule Mix.Tasks.Executive.Gen.TaskTest do
       """)
     end
 
+    test "accepts date options" do
+      generate("something.do", date: :my_date)
+
+      expect_file("something.do", "Something.Do", """
+        option :my_date, :date
+      """)
+    end
+
+    test "accepts datetime options" do
+      generate("something.do", datetime: :my_datetime)
+
+      expect_file("something.do", "Something.Do", """
+        option :my_datetime, :datetime
+      """)
+    end
+
     test "accepts float options" do
       generate("something.do", float: :my_float)
 
       expect_file("something.do", "Something.Do", """
         option :my_float, :float
+      """)
+    end
+
+    test "accepts hex options" do
+      generate("something.do", hex: :my_hex)
+
+      expect_file("something.do", "Something.Do", """
+        option :my_hex, {:base, :"16"}
+      """)
+    end
+
+    test "accepts integer options" do
+      generate("something.do", integer: :my_integer)
+
+      expect_file("something.do", "Something.Do", """
+        option :my_integer, :integer
+      """)
+    end
+
+    test "accepts naive datetime options" do
+      generate("something.do", naive_datetime: :my_naive_datetime)
+
+      expect_file("something.do", "Something.Do", """
+        option :my_naive_datetime, :naive_datetime
       """)
     end
 
@@ -156,19 +212,27 @@ defmodule Mix.Tasks.Executive.Gen.TaskTest do
       """)
     end
 
-    test "accepts integer options" do
-      generate("something.do", integer: :my_integer)
-
-      expect_file("something.do", "Something.Do", """
-        option :my_integer, :integer
-      """)
-    end
-
     test "accepts string options" do
       generate("something.do", string: :my_string)
 
       expect_file("something.do", "Something.Do", """
         option :my_string, :string
+      """)
+    end
+
+    test "accepts time options" do
+      generate("something.do", time: :my_time)
+
+      expect_file("something.do", "Something.Do", """
+        option :my_time, :time
+      """)
+    end
+
+    test "accepts URL base 64 options" do
+      generate("something.do", url_base64: :my_url_base64)
+
+      expect_file("something.do", "Something.Do", """
+        option :my_url_base64, {:base, :url_64}
       """)
     end
 

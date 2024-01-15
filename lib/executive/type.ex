@@ -169,6 +169,7 @@ defmodule Executive.Type do
   """
   @spec unalias(t(), params()) :: {module(), params()}
   def unalias(type, params)
+  def unalias(:base, params), do: {Executive.Types.Base, params}
   def unalias(:boolean, params), do: {Executive.Types.Boolean, params}
   def unalias(:date, params), do: {Executive.Types.Date, params}
   def unalias(:datetime, params), do: {Executive.Types.DateTime, params}

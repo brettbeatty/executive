@@ -23,7 +23,7 @@ defmodule Mix.Tasks.Executive.Gen.Task do
   to the generated task. The type of the option is the
   [alias](`t:Executive.Type.alias/0`) of the same name as the switch.
 
-  #{option_docs(&1, only: [:boolean, :date, :datetime, :float, :integer, :naive_datetime, :neg_integer, :non_neg_integer, :pos_integer, :string, :time, :uuid])}
+  #{option_docs(&1, only: [:base32, :base64, :boolean, :date, :datetime, :float, :hex, :integer, :naive_datetime, :neg_integer, :non_neg_integer, :pos_integer, :string, :time, :uuid])}
 
   Running the following task
 
@@ -66,6 +66,12 @@ defmodule Mix.Tasks.Executive.Gen.Task do
   options_type options()
 
   # type switches
+  @optdoc "See `Executive.Types.Base`"
+  option :base32, :string, unique: false
+
+  @optdoc "See `Executive.Types.Base`"
+  option :base64, :string, unique: false
+
   @optdoc "See `Executive.Types.Boolean`"
   option :boolean, :string, unique: false
 
@@ -77,6 +83,9 @@ defmodule Mix.Tasks.Executive.Gen.Task do
 
   @optdoc "See `Executive.Types.Float`"
   option :float, :string, unique: false
+
+  @optdoc "See `Executive.Types.Base`"
+  option :hex, :string, unique: false
 
   @optdoc "See `Executive.Types.Integer`"
   option :integer, :string, unique: false
@@ -98,6 +107,9 @@ defmodule Mix.Tasks.Executive.Gen.Task do
 
   @optdoc "See `Executive.Types.Time`"
   option :time, :string, unique: false
+
+  @optdoc "See `Executive.Types.Base`"
+  option :url_base64, :string, unique: false
 
   @optdoc "See `Executive.Types.UUID`"
   option :uuid, :string, unique: false
@@ -144,10 +156,13 @@ defmodule Mix.Tasks.Executive.Gen.Task do
   @modifier_switches [:alias, :doc, :required, :unique]
   @opt_switches [:start_application]
   @type_switches [
+    :base32,
+    :base64,
     :boolean,
     :date,
     :datetime,
     :float,
+    :hex,
     :naive_datetime,
     :neg_integer,
     :non_neg_integer,
@@ -155,6 +170,7 @@ defmodule Mix.Tasks.Executive.Gen.Task do
     :integer,
     :string,
     :time,
+    :url_base64,
     :uuid
   ]
 
@@ -183,7 +199,7 @@ defmodule Mix.Tasks.Executive.Gen.Task do
   defp parse_options({type, name}, {:ok, parsed_options, generator_opts, option_opts})
        when type in @type_switches do
     # credo:disable-for-next-line Credo.Check.Warning.UnsafeToAtom
-    option = {String.to_atom(name), type, option_opts}
+    option = {String.to_atom(name), unalias(type), option_opts}
     {:cont, {:ok, [option | parsed_options], generator_opts, _option_opts = []}}
   end
 
@@ -207,6 +223,14 @@ defmodule Mix.Tasks.Executive.Gen.Task do
        when key in @opt_switches do
     {:cont, {:ok, parsed_options, [{key, value} | generator_opts], option_opts}}
   end
+
+  @spec unalias(atom()) :: Option.type()
+  defp unalias(alias)
+  defp unalias(:base32), do: {:base, :"32"}
+  defp unalias(:base64), do: {:base, :"64"}
+  defp unalias(:hex), do: {:base, :"16"}
+  defp unalias(:url_base64), do: {:base, :url_64}
+  defp unalias(type), do: type
 
   @spec switch_name(atom()) :: String.t()
   defp switch_name(key) do
