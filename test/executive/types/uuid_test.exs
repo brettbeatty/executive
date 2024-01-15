@@ -1,5 +1,6 @@
 defmodule Executive.Types.UUIDTest do
   use ExUnit.Case, async: true
+  alias Executive.Schema
   alias Executive.Types.UUID, as: UUIDType
   doctest UUIDType
 

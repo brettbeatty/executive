@@ -2,7 +2,6 @@ defmodule Executive.Types.Float do
   @moduledoc """
   Floats are floating-point numbers.
 
-      iex> alias Executive.Schema
       iex> Schema.new()
       ...> |> Schema.put_option(:my_option, :float)
       ...> |> Schema.parse(["--my-option", "1.21"])
@@ -10,7 +9,6 @@ defmodule Executive.Types.Float do
 
   The decimal point is unneeded.
 
-      iex> alias Executive.Schema
       iex> Schema.new()
       ...> |> Schema.put_option(:my_option, :float)
       ...> |> Schema.parse(["--my-option", "0"])
@@ -18,7 +16,6 @@ defmodule Executive.Types.Float do
 
   Scientific notation is also supported.
 
-      iex> alias Executive.Schema
       iex> Schema.new()
       ...> |> Schema.put_option(:my_option, :float)
       ...> |> Schema.parse(["--my-option", "1.0e20"])

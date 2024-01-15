@@ -4,7 +4,6 @@ defmodule Executive.Types.Boolean do
 
   Options parse as true when the primary switch is used.
 
-      iex> alias Executive.Schema
       iex> Schema.new()
       ...> |> Schema.put_option(:my_option, :boolean)
       ...> |> Schema.parse(["--my-option"])
@@ -12,7 +11,6 @@ defmodule Executive.Types.Boolean do
 
   Options parse as false when the negation switch is used.
 
-      iex> alias Executive.Schema
       iex> Schema.new()
       ...> |> Schema.put_option(:my_option, :boolean)
       ...> |> Schema.parse(["--no-my-option"])
@@ -20,7 +18,6 @@ defmodule Executive.Types.Boolean do
 
   Any aliases for the option are seen as truthy.
 
-      iex> alias Executive.Schema
       iex> Schema.new()
       ...> |> Schema.put_option(:my_option, :boolean, alias: :o)
       ...> |> Schema.parse(["-o"])

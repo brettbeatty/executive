@@ -2,7 +2,6 @@ defmodule Executive.Types.String do
   @moduledoc """
   Strings are sequences of characters.
 
-      iex> alias Executive.Schema
       iex> Schema.new()
       ...> |> Schema.put_option(:my_option, :string)
       ...> |> Schema.parse(["--my-option", "some value"])

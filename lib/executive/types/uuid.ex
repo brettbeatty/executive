@@ -5,7 +5,6 @@ defmodule Executive.Types.UUID do
   This type just checks for the common format. If a value is in the 8-4-4-4-12
   format, this type will accept it.
 
-      iex> alias Executive.Schema
       iex> Schema.new()
       ...> |> Schema.put_option(:my_option, :uuid)
       ...> |> Schema.parse(["--my-option", "00000000-0000-0000-0000-000000000000"])
@@ -13,7 +12,6 @@ defmodule Executive.Types.UUID do
 
   Values in any other format will not be accepted.
 
-      iex> alias Executive.Schema
       iex> Schema.new()
       ...> |> Schema.put_option(:my_option, :uuid)
       ...> |> Schema.parse(["--my-option", "00000000000000000000000000000000"])

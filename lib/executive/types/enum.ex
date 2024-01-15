@@ -5,7 +5,6 @@ defmodule Executive.Types.Enum do
   This type is parametrized and takes a list of allowed values. When a switch's
   value is in the list of allowed values, an atom is returned.
 
-      iex> alias Executive.Schema
       iex> Schema.new()
       ...> |> Schema.put_option(:my_option, {:enum, [:heads, :tails]})
       ...> |> Schema.parse(["--my-option", "tails"])
@@ -13,7 +12,6 @@ defmodule Executive.Types.Enum do
 
   If the switch's value is not in the list of allowed values, an error is returned.
 
-      iex> alias Executive.Schema
       iex> Schema.new()
       ...> |> Schema.put_option(:my_option, {:enum, [:heads, :tails]})
       ...> |> Schema.parse!(["--my-option", "something else"])

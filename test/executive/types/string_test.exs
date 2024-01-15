@@ -1,6 +1,8 @@
 defmodule Executive.Types.StringTest do
   use ExUnit.Case, async: true
+  alias Executive.Schema
   alias Executive.Types.String, as: StringType
+  doctest StringType
 
   describe "name/1" do
     test "string" do

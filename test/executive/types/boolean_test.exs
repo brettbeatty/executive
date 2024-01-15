@@ -1,6 +1,8 @@
 defmodule Executive.Types.BooleanTest do
   use ExUnit.Case, async: true
+  alias Executive.Schema
   alias Executive.Types.Boolean, as: BooleanType
+  doctest BooleanType
 
   describe "capture?/2" do
     test "false for truthy switches" do

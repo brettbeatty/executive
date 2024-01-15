@@ -1,5 +1,6 @@
 defmodule Executive.Types.EnumTest do
   use ExUnit.Case, async: true
+  alias Executive.Schema
   alias Executive.Types.Enum, as: EnumType
   doctest EnumType
 

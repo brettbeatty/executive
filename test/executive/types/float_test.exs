@@ -1,6 +1,8 @@
 defmodule Executive.Types.FloatTest do
   use ExUnit.Case, async: true
+  alias Executive.Schema
   alias Executive.Types.Float, as: FloatType
+  doctest FloatType
 
   describe "name/1" do
     test "float" do
