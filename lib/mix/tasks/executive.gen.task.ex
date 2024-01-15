@@ -23,7 +23,7 @@ defmodule Mix.Tasks.Executive.Gen.Task do
   to the generated task. The type of the option is the
   [alias](`t:Executive.Type.alias/0`) of the same name as the switch.
 
-  #{option_docs(&1, only: [:boolean, :float, :neg_integer, :non_neg_integer, :pos_integer, :integer, :string, :uuid])}
+  #{option_docs(&1, only: [:boolean, :date, :datetime, :float, :integer, :naive_datetime, :neg_integer, :non_neg_integer, :pos_integer, :string, :time, :uuid])}
 
   Running the following task
 
@@ -69,8 +69,20 @@ defmodule Mix.Tasks.Executive.Gen.Task do
   @optdoc "See `Executive.Types.Boolean`"
   option :boolean, :string, unique: false
 
+  @optdoc "See `Executive.Types.Date`"
+  option :date, :string, unique: false
+
+  @optdoc "See `Executive.Types.DateTime`"
+  option :datetime, :string, unique: false
+
   @optdoc "See `Executive.Types.Float`"
   option :float, :string, unique: false
+
+  @optdoc "See `Executive.Types.Integer`"
+  option :integer, :string, unique: false
+
+  @optdoc "See `Executive.Types.NaiveDateTime`"
+  option :naive_datetime, :string, unique: false
 
   @optdoc "See `Executive.Types.Integer`"
   option :neg_integer, :string, unique: false
@@ -81,11 +93,11 @@ defmodule Mix.Tasks.Executive.Gen.Task do
   @optdoc "See `Executive.Types.Integer`"
   option :pos_integer, :string, unique: false
 
-  @optdoc "See `Executive.Types.Integer`"
-  option :integer, :string, unique: false
-
   @optdoc "See `Executive.Types.String`"
   option :string, :string, unique: false
+
+  @optdoc "See `Executive.Types.Time`"
+  option :time, :string, unique: false
 
   @optdoc "See `Executive.Types.UUID`"
   option :uuid, :string, unique: false
@@ -133,12 +145,16 @@ defmodule Mix.Tasks.Executive.Gen.Task do
   @opt_switches [:start_application]
   @type_switches [
     :boolean,
+    :date,
+    :datetime,
     :float,
+    :naive_datetime,
     :neg_integer,
     :non_neg_integer,
     :pos_integer,
     :integer,
     :string,
+    :time,
     :uuid
   ]
 

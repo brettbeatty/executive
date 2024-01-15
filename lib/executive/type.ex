@@ -10,17 +10,32 @@ defmodule Executive.Type do
   Alias              | Type
   ------------------ | ----
   `:boolean`         | `Executive.Types.Boolean`
+  `:date`            | `Executive.Types.Date`
+  `:datetime`        | `Executive.Types.DateTime`
   `:enum`            | `Executive.Types.Enum`
   `:float`           | `Executive.Types.Float`
+  `:integer`         | `Executive.Types.Integer`
+  `:naive_datetime`  | `Executive.Types.NaiveDateTime`
   `:neg_integer`     | `{Executive.Types.Integer, max: -1}`
   `:non_neg_integer` | `{Executive.Types.Integer, min: 0}`
   `:pos_integer`     | `{Executive.Types.Integer, min: 1}`
-  `:integer`         | `Executive.Types.Integer`
   `:string`          | `Executive.Types.String`
   `:uuid`            | `Executive.Types.UUID`
 
   """
-  @type alias() :: :boolean | :enum | :float | :integer | :string | :uuid
+  @type alias() ::
+          :boolean
+          | :date
+          | :datetime
+          | :enum
+          | :float
+          | :integer
+          | :naive_datetime
+          | :neg_integer
+          | :non_neg_integer
+          | :pos_integer
+          | :string
+          | :uuid
 
   @typedoc """
   To support parametrization, all type callbacks accept parameters.
@@ -155,13 +170,17 @@ defmodule Executive.Type do
   @spec unalias(t(), params()) :: {module(), params()}
   def unalias(type, params)
   def unalias(:boolean, params), do: {Executive.Types.Boolean, params}
+  def unalias(:date, params), do: {Executive.Types.Date, params}
+  def unalias(:datetime, params), do: {Executive.Types.DateTime, params}
   def unalias(:enum, params), do: {Executive.Types.Enum, params}
   def unalias(:float, params), do: {Executive.Types.Float, params}
   def unalias(:integer, params), do: {Executive.Types.Integer, params}
+  def unalias(:naive_datetime, params), do: {Executive.Types.NaiveDateTime, params}
   def unalias(:neg_integer, _params), do: {Executive.Types.Integer, max: -1}
   def unalias(:non_neg_integer, _params), do: {Executive.Types.Integer, min: 0}
   def unalias(:pos_integer, _params), do: {Executive.Types.Integer, min: 1}
   def unalias(:string, params), do: {Executive.Types.String, params}
+  def unalias(:time, params), do: {Executive.Types.Time, params}
   def unalias(:uuid, params), do: {Executive.Types.UUID, params}
   def unalias(module, params) when is_atom(module), do: {module, params}
 end

@@ -20,10 +20,14 @@ defmodule Executive.MixProject do
         groups_for_modules: [
           Types: [
             Executive.Types.Boolean,
+            Executive.Types.Date,
+            Executive.Types.DateTime,
             Executive.Types.Enum,
             Executive.Types.Float,
             Executive.Types.Integer,
+            Executive.Types.NaiveDateTime,
             Executive.Types.String,
+            Executive.Types.Time,
             Executive.Types.UUID
           ]
         ]
