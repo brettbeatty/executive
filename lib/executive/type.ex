@@ -9,6 +9,7 @@ defmodule Executive.Type do
 
   Alias              | Type
   ------------------ | ----
+  `:base`            | `Executive.Types.Base`
   `:boolean`         | `Executive.Types.Boolean`
   `:date`            | `Executive.Types.Date`
   `:datetime`        | `Executive.Types.DateTime`
@@ -20,11 +21,13 @@ defmodule Executive.Type do
   `:non_neg_integer` | `{Executive.Types.Integer, min: 0}`
   `:pos_integer`     | `{Executive.Types.Integer, min: 1}`
   `:string`          | `Executive.Types.String`
+  `:time`            | `Executive.Types.Time`
   `:uuid`            | `Executive.Types.UUID`
 
   """
   @type alias() ::
-          :boolean
+          :base
+          | :boolean
           | :date
           | :datetime
           | :enum
@@ -35,6 +38,7 @@ defmodule Executive.Type do
           | :non_neg_integer
           | :pos_integer
           | :string
+          | :time
           | :uuid
 
   @typedoc """
