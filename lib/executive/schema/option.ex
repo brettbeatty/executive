@@ -79,26 +79,21 @@ defmodule Executive.Schema.Option do
   """
   @spec docs(t()) :: IO.chardata()
   def docs(option) do
-    %__MODULE__{aliases: aliases, doc: doc, required: required} = option
+    %__MODULE__{doc: doc, required: required} = option
 
-    aliased =
-      case aliases |> Enum.map(&["`-", to_string(&1), ?`]) |> Enum.intersperse(", ") do
-        [] ->
-          []
-
-        aliased ->
-          [?(, aliased, ") "]
-      end
+    switches =
+      option
+      |> switches()
+      |> Enum.map(fn {switch, _flag} -> [?`, switch, ?`] end)
+      |> Enum.intersperse(", ")
 
     required_string = if required, do: ", required", else: []
     docstring = if byte_size(doc) > 0, do: [" - ", doc], else: []
 
     [
-      "  - `",
-      switch(option),
-      "` ",
-      aliased,
-      "- ",
+      "  - ",
+      switches,
+      " - ",
       type_name(option),
       required_string,
       docstring

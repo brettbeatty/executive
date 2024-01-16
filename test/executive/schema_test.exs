@@ -22,7 +22,7 @@ defmodule Executive.SchemaTest do
 
       expected =
         String.trim_trailing("""
-          - `--my-boolean` (`-b`) - boolean
+          - `--my-boolean`, `--no-my-boolean`, `-b` - boolean
           - `--my-string` - string, required - some docs here
         """)
 
@@ -44,7 +44,7 @@ defmodule Executive.SchemaTest do
 
       expected =
         String.trim_trailing("""
-          - `--my-enum` (`-f`, `-s`) - enum (fork, spoon), required - fork or spoon?
+          - `--my-enum`, `-f`, `-s` - enum (fork, spoon), required - fork or spoon?
           - `--my-integer` - integer - some docs about my integer
         """)
 
@@ -62,8 +62,8 @@ defmodule Executive.SchemaTest do
 
       expected =
         String.trim_trailing("""
-          - `--my-float` (`-f`) - float - my float
-          - `--my-string` (`-s`) - string, required
+          - `--my-float`, `-f` - float - my float
+          - `--my-string`, `-s` - string, required
         """)
 
       assert actual == expected

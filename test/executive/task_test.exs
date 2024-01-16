@@ -59,17 +59,17 @@ defmodule Executive.TaskTest do
 
       ## Cool Options
 
-        - `--enum-switch` (`-e`) - enum (alfa, bravo) - behaves differently based on alfa vs bravo
+        - `--enum-switch`, `-e` - enum (alfa, bravo) - behaves differently based on alfa vs bravo
 
       ## Useful Options
 
-        - `--string-switch` (`-s`) - string - some sort of silly string
-        - `--integer-switch` (`-i`) - integer - any integer will do
-        - `--boolean-switch` (`-b`) - boolean - something about the boolean switch
+        - `--string-switch`, `-s` - string - some sort of silly string
+        - `--integer-switch`, `-i` - integer - any integer will do
+        - `--boolean-switch`, `--no-boolean-switch`, `-b` - boolean - something about the boolean switch
 
       ## I'm Not Sure These Will Get Used
 
-        - `--float-switch` (`-f`) - float - not a whole number
+        - `--float-switch`, `-f` - float - not a whole number
 
       """
 

@@ -95,11 +95,11 @@ defmodule Executive.Schema.OptionTest do
       assert actual == expected
     end
 
-    test "lists any aliases" do
-      option = Option.new(:my_option, :float, alias: [:f, :n])
+    test "lists all switches" do
+      option = Option.new(:my_option, :boolean, alias: [:f, :n])
 
       actual = option |> Option.docs() |> to_string()
-      expected = "  - `--my-option` (`-f`, `-n`) - float"
+      expected = "  - `--my-option`, `--no-my-option`, `-f`, `-n` - boolean"
 
       assert actual == expected
     end
@@ -115,7 +115,7 @@ defmodule Executive.Schema.OptionTest do
       actual = option |> Option.docs() |> to_string()
 
       expected =
-        "  - `--my-option` (`-e`) - enum (a, b, c), required - some description of what each thing does"
+        "  - `--my-option`, `-e` - enum (a, b, c), required - some description of what each thing does"
 
       assert actual == expected
     end
