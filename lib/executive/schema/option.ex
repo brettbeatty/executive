@@ -66,6 +66,7 @@ defmodule Executive.Schema.Option do
   @spec capture?(t(), Type.switch_flag()) :: boolean()
   def capture?(option, switch_flag) do
     %__MODULE__{type: type, type_params: type_params} = option
+    Code.ensure_loaded(type)
 
     if function_exported?(type, :capture?, 2) do
       type.capture?(type_params, switch_flag)
@@ -177,6 +178,7 @@ defmodule Executive.Schema.Option do
   @spec switches(t()) :: [{String.t(), Type.switch_flag()}]
   def switches(option) do
     %__MODULE__{aliases: aliases, name: name, type: type, type_params: type_params} = option
+    Code.ensure_loaded(type)
 
     if function_exported?(type, :switches, 3) do
       type.switches(type_params, name, aliases)

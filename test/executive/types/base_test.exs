@@ -7,17 +7,17 @@ defmodule Executive.Types.BaseTest do
   describe "name/1" do
     test "base 16" do
       name = BaseType.name(:"16")
-      assert to_string(name) == "hex-encoded string"
+      assert to_string(name) == "base 16 string"
     end
 
     test "uppercase base 16" do
       name = BaseType.name({:"16", case: :upper})
-      assert to_string(name) == "uppercase hex-encoded string"
+      assert to_string(name) == "uppercase base 16 string"
     end
 
     test "lowercase base 16" do
       name = BaseType.name({:"16", case: :lower})
-      assert to_string(name) == "lowercase hex-encoded string"
+      assert to_string(name) == "lowercase base 16 string"
     end
 
     test "base 32" do

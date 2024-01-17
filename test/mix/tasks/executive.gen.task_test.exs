@@ -116,11 +116,19 @@ defmodule Mix.Tasks.Executive.Gen.TaskTest do
       """)
     end
 
+    test "accepts base16 options" do
+      generate("something.do", base16: :my_base16)
+
+      expect_file("something.do", "Something.Do", """
+        option :my_base16, :base16
+      """)
+    end
+
     test "accepts base32 options" do
       generate("something.do", base32: :my_base32)
 
       expect_file("something.do", "Something.Do", """
-        option :my_base32, {:base, :"32"}
+        option :my_base32, :base32
       """)
     end
 
@@ -128,7 +136,7 @@ defmodule Mix.Tasks.Executive.Gen.TaskTest do
       generate("something.do", base64: :my_base64)
 
       expect_file("something.do", "Something.Do", """
-        option :my_base64, {:base, :"64"}
+        option :my_base64, :base64
       """)
     end
 
@@ -161,14 +169,6 @@ defmodule Mix.Tasks.Executive.Gen.TaskTest do
 
       expect_file("something.do", "Something.Do", """
         option :my_float, :float
-      """)
-    end
-
-    test "accepts hex options" do
-      generate("something.do", hex: :my_hex)
-
-      expect_file("something.do", "Something.Do", """
-        option :my_hex, {:base, :"16"}
       """)
     end
 
@@ -232,7 +232,7 @@ defmodule Mix.Tasks.Executive.Gen.TaskTest do
       generate("something.do", url_base64: :my_url_base64)
 
       expect_file("something.do", "Something.Do", """
-        option :my_url_base64, {:base, :url_64}
+        option :my_url_base64, :url_base64
       """)
     end
 

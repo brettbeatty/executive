@@ -3,7 +3,7 @@ defmodule Executive.Types.Base do
   Base decodes strings of base 16, 32, or 64.
 
       iex> Schema.new()
-      ...> |> Schema.put_option(:my_option, {:base, :"64"})
+      ...> |> Schema.put_option(:my_option, :base64)
       ...> |> Schema.parse(["--my-option", "bXkgc3RyaW5n"])
       {:ok, [], [my_option: "my string"]}
 
@@ -24,16 +24,16 @@ defmodule Executive.Types.Base do
   can be restricted by including a case with the base:
 
       iex> Schema.new()
-      ...> |> Schema.put_option(:my_option, {:base, {:"16", case: :upper}})
+      ...> |> Schema.put_option(:my_option, {:base16, case: :upper})
       ...> |> Schema.parse!(["--my-option", "6d7920737472696e67"])
       ** (Executive.ParseError) 1 error found!
-      --my-option : Expected type uppercase hex-encoded string, got "6d7920737472696e67"
+      --my-option : Expected type uppercase base 16 string, got "6d7920737472696e67"
 
   By default bases 32, 64, and url_64 can accept both padded and unpadded
   strings. Padding can be required by including `padding: true` with the base.
 
       iex> Schema.new()
-      ...> |> Schema.put_option(:my_option, {:base, {:"32", padding: true}})
+      ...> |> Schema.put_option(:my_option, {:base32, padding: true})
       ...> |> Schema.parse!(["--my-option", "NV4SA43UOJUW4ZY"])
       ** (Executive.ParseError) 1 error found!
       --my-option : Expected type padded base 32 string, got "NV4SA43UOJUW4ZY"
@@ -41,6 +41,21 @@ defmodule Executive.Types.Base do
   ## Aliases
 
   This type is aliased as `:base`.
+
+  Each base also has its own alias that can be parametrized with the options
+  supported by that base.
+
+  Alias                 | Type
+  --------------------- | ----
+  `:base16`             | `{:base, :"16"}`
+  `{:base16, opts}`     | `{:base, {:"16", opts}}`
+  `:base32`             | `{:base, :"32"}`
+  `{:base32, opts}`     | `{:base, {:"32", opts}}`
+  `:base64`             | `{:base, :"64"}`
+  `{:base64, opts}`     | `{:base, {:"64", opts}}`
+  `:url_base64`         | `{:base, :url_64}`
+  `{:url_base64, opts}` | `{:base, {:url_64, opts}}`
+
   """
   @behaviour Executive.Type
 
@@ -69,7 +84,7 @@ defmodule Executive.Types.Base do
   def name(params) do
     case normalize(params) do
       {:"16", case} ->
-        case_name("hex-encoded string", case)
+        case_name("base 16 string", case)
 
       {:"32", case, padding} ->
         "base 32 string"

@@ -174,6 +174,9 @@ defmodule Executive.Type do
   @spec unalias(t(), params()) :: {module(), params()}
   def unalias(type, params)
   def unalias(:base, params), do: {Executive.Types.Base, params}
+  def unalias(:base16, params), do: {Executive.Types.Base, {:"16", params}}
+  def unalias(:base32, params), do: {Executive.Types.Base, {:"32", params}}
+  def unalias(:base64, params), do: {Executive.Types.Base, {:"64", params}}
   def unalias(:boolean, params), do: {Executive.Types.Boolean, params}
   def unalias(:date, params), do: {Executive.Types.Date, params}
   def unalias(:datetime, params), do: {Executive.Types.DateTime, params}
@@ -186,6 +189,7 @@ defmodule Executive.Type do
   def unalias(:pos_integer, _params), do: {Executive.Types.Integer, min: 1}
   def unalias(:string, params), do: {Executive.Types.String, params}
   def unalias(:time, params), do: {Executive.Types.Time, params}
+  def unalias(:url_base64, params), do: {Executive.Types.Base, {:url_64, params}}
   def unalias(:uuid, params), do: {Executive.Types.UUID, params}
   def unalias(module, params) when is_atom(module), do: {module, params}
 end
