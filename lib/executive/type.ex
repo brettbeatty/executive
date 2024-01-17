@@ -1,3 +1,4 @@
+# credo:disable-for-this-file Credo.Check.Refactor.ModuleDependencies
 defmodule Executive.Type do
   @moduledoc """
   Provides a behaviour for types that can be parsed from mix task args.
@@ -10,6 +11,9 @@ defmodule Executive.Type do
   Alias              | Type
   ------------------ | ----
   `:base`            | `Executive.Types.Base`
+  `:base16`          | `{Executive.Types.Base, :"16"}`
+  `:base32`          | `{Executive.Types.Base, :"32"}`
+  `:base64`          | `{Executive.Types.Base, :"64"}`
   `:boolean`         | `Executive.Types.Boolean`
   `:date`            | `Executive.Types.Date`
   `:datetime`        | `Executive.Types.DateTime`
@@ -22,6 +26,8 @@ defmodule Executive.Type do
   `:pos_integer`     | `{Executive.Types.Integer, min: 1}`
   `:string`          | `Executive.Types.String`
   `:time`            | `Executive.Types.Time`
+  `:uri`             | `Executive.Types.URI`
+  `:url_base64`      | `{Executive.Types.Base, :url_64}`
   `:uuid`            | `Executive.Types.UUID`
 
   """
@@ -189,6 +195,7 @@ defmodule Executive.Type do
   def unalias(:pos_integer, _params), do: {Executive.Types.Integer, min: 1}
   def unalias(:string, params), do: {Executive.Types.String, params}
   def unalias(:time, params), do: {Executive.Types.Time, params}
+  def unalias(:uri, params), do: {Executive.Types.URI, params}
   def unalias(:url_base64, params), do: {Executive.Types.Base, {:url_64, params}}
   def unalias(:uuid, params), do: {Executive.Types.UUID, params}
   def unalias(module, params) when is_atom(module), do: {module, params}

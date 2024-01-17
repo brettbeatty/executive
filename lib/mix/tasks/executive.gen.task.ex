@@ -23,7 +23,7 @@ defmodule Mix.Tasks.Executive.Gen.Task do
   to the generated task. The type of the option is the
   [alias](`t:Executive.Type.alias/0`) of the same name as the switch.
 
-  #{option_docs(&1, only: [:base16, :base32, :base64, :boolean, :date, :datetime, :float, :integer, :naive_datetime, :neg_integer, :non_neg_integer, :pos_integer, :string, :time, :uuid])}
+  #{option_docs(&1, only: [:base16, :base32, :base64, :boolean, :date, :datetime, :float, :integer, :naive_datetime, :neg_integer, :non_neg_integer, :pos_integer, :string, :time, :uri, :uuid])}
 
   Running the following task
 
@@ -111,6 +111,9 @@ defmodule Mix.Tasks.Executive.Gen.Task do
   @optdoc "See `Executive.Types.Base`"
   option :url_base64, :string, unique: false
 
+  @optdoc "See `Executive.Types.URI`"
+  option :uri, :string, unique: false
+
   @optdoc "See `Executive.Types.UUID`"
   option :uuid, :string, unique: false
 
@@ -171,6 +174,7 @@ defmodule Mix.Tasks.Executive.Gen.Task do
     :string,
     :time,
     :url_base64,
+    :uri,
     :uuid
   ]
 

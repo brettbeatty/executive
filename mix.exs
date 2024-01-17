@@ -29,6 +29,7 @@ defmodule Executive.MixProject do
             Executive.Types.NaiveDateTime,
             Executive.Types.String,
             Executive.Types.Time,
+            Executive.Types.URI,
             Executive.Types.UUID
           ]
         ]

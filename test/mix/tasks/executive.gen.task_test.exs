@@ -236,6 +236,14 @@ defmodule Mix.Tasks.Executive.Gen.TaskTest do
       """)
     end
 
+    test "accepts uri options" do
+      generate("something.do", uri: :my_uri)
+
+      expect_file("something.do", "Something.Do", """
+        option :my_uri, :uri
+      """)
+    end
+
     test "accepts uuid options" do
       generate("something.do", uuid: :my_uuid)
 
