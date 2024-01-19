@@ -349,6 +349,52 @@ defmodule Executive.SchemaTest do
 
       assert result == {:ok, [], my_option: :duck, my_option: :duck, my_option: :goose}
     end
+
+    test "succeeds when validations pass" do
+      validate_a = fn value ->
+        send(self(), {:a, value})
+        :ok
+      end
+
+      validate_b = fn value ->
+        send(self(), {:b, value})
+        :ok
+      end
+
+      result =
+        Schema.new()
+        |> Schema.put_option(:my_option, :string, validate: [validate_a, validate_b])
+        |> Schema.parse(["--my-option", "my value"])
+
+      assert result == {:ok, [], my_option: "my value"}
+      assert_received {:a, "my value"}
+      assert_received {:b, "my value"}
+    end
+
+    test "fails if validation fails" do
+      validate_a = fn value ->
+        send(self(), {:a, value})
+        {:error, "something went horribly wrong"}
+      end
+
+      validate_b = fn value ->
+        send(self(), {:b, value})
+        :ok
+      end
+
+      result =
+        Schema.new()
+        |> Schema.put_option(:my_option, :string, validate: [validate_a, validate_b])
+        |> Schema.parse(["--my-option", "my value"])
+
+      assert {:error, error} = result
+
+      assert Exception.message(error) ==
+               "1 error found!\n--my-option : something went horribly wrong"
+
+      assert_received {:a, "my value"}
+      refute_received {:b, "my value"}
+    end
   end
 
   describe "parse!/2" do

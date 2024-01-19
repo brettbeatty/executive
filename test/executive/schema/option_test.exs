@@ -51,6 +51,8 @@ defmodule Executive.Schema.OptionTest do
     end
   end
 
+  defp error(_value), do: :error
+
   describe "capture?/2" do
     test "defaults to true" do
       option = Option.new(:my_option, MyType, [])
@@ -157,15 +159,50 @@ defmodule Executive.Schema.OptionTest do
     end
   end
 
-  describe "parse/2" do
+  describe "parse_and_validate/2" do
     test "calls type's parse callback" do
       refined = make_ref()
       flag = make_ref()
       ref = MockType.return({:ok, refined})
       option = Option.new(:my_option, {MockType, ref}, [])
 
-      assert Option.parse(option, flag, "raw value") == {:ok, refined}
+      assert Option.parse_and_validate(option, flag, "raw value") == {:ok, refined}
       assert_received {^ref, raw: "raw value", flag: ^flag}
+    end
+
+    test "allows passing validations" do
+      refined = make_ref()
+      ref = MockType.return({:ok, refined})
+
+      validate = fn ^refined ->
+        send(self(), {ref, :validate})
+        :ok
+      end
+
+      option = Option.new(:my_option, {MockType, ref}, validate: validate)
+
+      assert Option.parse_and_validate(option, nil, "raw value") == {:ok, refined}
+      assert_received {^ref, raw: "raw value", flag: nil}
+      assert_received {^ref, :validate}
+    end
+
+    test "builds a default error" do
+      string = "my string"
+      option = Option.new(:my_option, :string, validate: &error/1)
+
+      assert {:error, message} = Option.parse_and_validate(option, nil, string)
+
+      assert to_string(message) ==
+               ~S(Value "my string" failed validation Executive.Schema.OptionTest.error/1)
+    end
+
+    test "can return more helpful error" do
+      string = "my string"
+      message = ["Something", " went horribly ", "wrong"]
+      validate = fn ^string -> {:error, message} end
+      option = Option.new(:my_option, :string, validate: validate)
+
+      assert Option.parse_and_validate(option, nil, string) == {:error, message}
     end
   end
 

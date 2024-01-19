@@ -23,7 +23,8 @@ defmodule Executive.Schema.Option do
           alias: atom() | [atom()],
           doc: String.t(),
           required: boolean(),
-          unique: boolean()
+          unique: boolean(),
+          validate: validation() | [validation()]
         ]
 
   @typedoc """
@@ -36,7 +37,8 @@ defmodule Executive.Schema.Option do
           required: boolean(),
           type: module(),
           type_params: term(),
-          unique: boolean()
+          unique: boolean(),
+          validations: [validation()]
         }
 
   @typedoc """
@@ -44,7 +46,20 @@ defmodule Executive.Schema.Option do
   """
   @type type() :: Type.t() | {Type.t(), Type.params()}
 
-  defstruct [:aliases, :doc, :name, :required, :type, :type_params, :unique]
+  @typedoc """
+  Validates an option.
+
+  There are 3 things that can be returned:
+
+    - `:ok` if the value is valid
+    - `:error` if the value is invalid
+    - `{:error, message}` if the value is invalid and a more specific message
+      than the default default can be given
+
+  """
+  @type validation() :: (term() -> :ok | :error | {:error, IO.chardata()})
+
+  defstruct [:aliases, :doc, :name, :required, :type, :type_params, :unique, :validations]
 
   @doc """
   Whether `option` switch with `switch_flag` should capture the next value.
@@ -120,7 +135,8 @@ defmodule Executive.Schema.Option do
       required: Keyword.get(opts, :required, false),
       type: type,
       type_params: type_params,
-      unique: Keyword.get(opts, :unique, true)
+      unique: Keyword.get(opts, :unique, true),
+      validations: opts |> Keyword.get(:validate, []) |> List.wrap()
     }
   end
 
@@ -130,18 +146,57 @@ defmodule Executive.Schema.Option do
   defp unalias({type, params}) when is_atom(type), do: Type.unalias(type, params)
 
   @doc """
-  Parses `raw` using `option`'s type.
+  Parses `raw` using `option`'s type and validations.
 
-  Dispatches to type's `c:Executive.Type.parse/3` implementation.
+  Dispatches to type's `c:Executive.Type.parse/3` implementation as well as
+  option's validations.
   """
+  @spec parse_and_validate(t(), Type.switch_flag(), String.t() | nil) ::
+          {:ok, term()} | {:error, IO.chardata()}
+  def parse_and_validate(option, flag, raw) do
+    with {:ok, value} <- parse(option, flag, raw),
+         :ok <- validate(option, value) do
+      {:ok, value}
+    end
+  end
+
   @spec parse(t(), Type.switch_flag(), String.t() | nil) ::
           {:ok, term()} | {:error, IO.chardata()}
-  def parse(option, flag, raw) do
+  defp parse(option, flag, raw) do
     %__MODULE__{type: type, type_params: params} = option
 
     with :error <- type.parse(params, flag, raw) do
       {:error, ["Expected type ", type_name(option), ", got ", inspect(raw)]}
     end
+  end
+
+  @spec validate(t(), term()) :: :ok | {:error, IO.chardata()}
+  defp validate(option, value) do
+    %__MODULE__{validations: validations} = option
+
+    Enum.reduce_while(validations, :ok, fn validate, :ok ->
+      case validate.(value) do
+        :ok ->
+          {:cont, :ok}
+
+        :error ->
+          {:halt,
+           {:error, ["Value ", inspect(value), " failed validation ", validation_name(validate)]}}
+
+        {:error, message} ->
+          {:halt, {:error, message}}
+      end
+    end)
+  end
+
+  @spec validation_name(validation()) :: IO.chardata()
+  defp validation_name(validate) do
+    info = Function.info(validate)
+    module = info |> Keyword.fetch!(:module) |> then(&Macro.inspect_atom(:literal, &1))
+    name = info |> Keyword.fetch!(:name) |> then(&Macro.inspect_atom(:remote_call, &1))
+    arity = info |> Keyword.fetch!(:arity) |> Integer.to_string()
+
+    [module, ?., name, ?/, arity]
   end
 
   @doc """

@@ -277,7 +277,7 @@ defmodule Executive.Schema do
   @spec parse_option(Option.t(), Type.switch_flag(), String.t()) ::
           {:ok, term()} | {:error, Option.name(), IO.chardata()}
   defp parse_option(option, switch_flag, raw_value) do
-    with {:error, message} <- Option.parse(option, switch_flag, raw_value) do
+    with {:error, message} <- Option.parse_and_validate(option, switch_flag, raw_value) do
       {:error, option.name, message}
     end
   end
@@ -396,6 +396,21 @@ defmodule Executive.Schema do
           ...> |> Schema.put_option(:my_option, :boolean, unique: false)
           ...> |> Schema.parse!(["--my-option", "--no-my-option", "--my-option"])
           {[], [my_option: true, my_option: false, my_option: true]}
+
+    - `:validate` - one or more functions that validate refined value
+
+          iex> validate = fn date ->
+          ...>   case Date.compare(date, ~D[2024-01-01]) do
+          ...>     :gt -> :ok
+          ...>     :eq -> :ok
+          ...>     :lt -> {:error, "Expected a date after 2024-01-01"}
+          ...>   end
+          ...> end
+          iex> Schema.new()
+          ...> |> Schema.put_option(:my_option, :date, validate: validate)
+          ...> |> Schema.parse!(["--my-option", "2023-12-31"])
+          ** (Executive.ParseError) 1 error found!
+          --my-option : Expected a date after 2024-01-01
 
   """
   @spec put_option(t(), atom(), Option.type()) :: t()
