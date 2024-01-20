@@ -104,7 +104,7 @@ defmodule Executive.TaskTest do
       assert MockTask.run(argv) == {expected_argv, expected_opts}
     end
 
-    test "fails if options invalid" do
+    test "parsing fails if options not correct type" do
       argv = [
         "--float-switch",
         "half",
@@ -123,6 +123,21 @@ defmodule Executive.TaskTest do
         --integer-switch : Expected type integer, got "4.0"
         --string-switch : Missing argument of type string
         --unknown-switch : Unknown option
+        """)
+
+      assert_raise Executive.ParseError, expected_message, fn ->
+        MockTask.run(argv)
+      end
+    end
+
+    test "parsing fails if validations don't pass" do
+      argv = ["--float-switch", "-1.0", "--base64-switch", "bXkgc3RyaW5n"]
+
+      expected_message =
+        String.trim("""
+        2 errors found!
+        --float-switch : Value -1.0 failed validation Mix.Tasks.MockTask.validate_positive/1
+        --base64-switch : Expected exactly 8 decoded bytes
         """)
 
       assert_raise Executive.ParseError, expected_message, fn ->
@@ -154,6 +169,7 @@ defmodule Executive.TaskTest do
       expected_type =
         quote do
           options() :: [
+            base64_switch: binary(),
             boolean_switch: boolean(),
             enum_switch: :alfa | :bravo,
             float_switch: float(),
@@ -176,6 +192,7 @@ defmodule Executive.TaskTest do
   describe "with_schema/1" do
     test "allows operations on actual schema" do
       expected_options = [
+        :base64_switch,
         :boolean_switch,
         :enum_switch,
         :float_switch,
@@ -191,6 +208,7 @@ defmodule Executive.TaskTest do
     test "allows injecting schema into module" do
       expected_schema =
         Schema.new()
+        |> Schema.put_option(:base64_switch, :base64, doc: "a base64-encoded binary")
         |> Schema.put_option(:boolean_switch, :boolean,
           alias: :b,
           doc: "something about the boolean switch"

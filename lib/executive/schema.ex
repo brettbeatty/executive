@@ -203,7 +203,8 @@ defmodule Executive.Schema do
   defp parse(acc, argv, switches)
 
   # credo:disable-for-next-line Credo.Check.Refactor.ABCSize
-  defp parse(acc, [switch = "-" <> _rest | argv], switches) do
+  defp parse(acc, [switch = <<"-", next::8, _rest::binary>> | argv], switches)
+       when next == ?- or next in ?A..?Z or next in ?a..?z do
     case parse_switch(switch, switches, argv) do
       {:ok, option, value, new_argv} ->
         acc
@@ -260,7 +261,8 @@ defmodule Executive.Schema do
   defp capture(option, switch_flag, argv) do
     if Option.capture?(option, switch_flag) do
       case argv do
-        ["-" <> _rest | _argv] ->
+        [<<"-", next::8, _rest::binary>> | _argv]
+        when next == ?- or next in ?A..?Z or next in ?a..?z ->
           {:error, option.name, ["Missing argument of type " | Option.type_name(option)]}
 
         [raw_value | new_argv] ->

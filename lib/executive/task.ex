@@ -226,6 +226,9 @@ defmodule Executive.Task do
         end
       end
 
+  When `mode = :value` schemas given to `fun` will not have any option
+  validations--this allows tasks to validate options with functions defined in
+  the task (which will not have compiled when hooks are called).
   """
   defmacro with_schema(mode \\ :value, fun) do
     {fun, _binding} = Module.eval_quoted(__CALLER__, fun)
@@ -254,8 +257,13 @@ defmodule Executive.Task do
   end
 
   defmacro __before_compile__(env) do
-    schema_ast = build_schema(env.module)
-    {schema, _binding} = Module.eval_quoted(env, schema_ast)
+    schema_ast = build_schema(env.module, _include_validations? = true)
+
+    {schema, _binding} =
+      env.module
+      |> build_schema(_include_validations? = false)
+      |> then(&Module.eval_quoted(env, &1))
+
     hooks = env.module |> Module.get_attribute(:executive_task_with_schema, []) |> Enum.reverse()
 
     blocks =
@@ -272,8 +280,8 @@ defmodule Executive.Task do
     end
   end
 
-  @spec build_schema(t()) :: Macro.t()
-  defp build_schema(module) do
+  @spec build_schema(t(), boolean()) :: Macro.t()
+  defp build_schema(module, include_validations?) do
     options = Module.get_attribute(module, :executive_task_option, [])
 
     schema =
@@ -282,8 +290,20 @@ defmodule Executive.Task do
       end
 
     Enum.reduce(options, schema, fn {name, type, opts}, schema ->
+      new_opts =
+        if include_validations? do
+          opts
+        else
+          Keyword.delete(opts, :validate)
+        end
+
       quote do
-        Executive.Schema.put_option(unquote(schema), unquote(name), unquote(type), unquote(opts))
+        Executive.Schema.put_option(
+          unquote(schema),
+          unquote(name),
+          unquote(type),
+          unquote(new_opts)
+        )
       end
     end)
   end

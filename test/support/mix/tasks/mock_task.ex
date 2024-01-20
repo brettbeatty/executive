@@ -31,6 +31,9 @@ defmodule Mix.Tasks.MockTask do
   option_type option(), only: [:boolean_switch, :enum_switch, :string_switch]
   options_type options()
 
+  @optdoc "a base64-encoded binary"
+  option :base64_switch, :base64, validate: &validate_base64_switch/1
+
   @optdoc "something about the boolean switch"
   option :boolean_switch, :boolean, alias: :b
 
@@ -38,7 +41,7 @@ defmodule Mix.Tasks.MockTask do
   option :enum_switch, {:enum, [:alfa, :bravo]}, alias: :e
 
   @optdoc "not a whole number"
-  option :float_switch, :float, alias: :f
+  option :float_switch, :float, alias: :f, validate: &validate_positive/1
 
   @optdoc "any integer will do"
   option :integer_switch, :integer, alias: :i
@@ -56,12 +59,36 @@ defmodule Mix.Tasks.MockTask do
 
   with_schema :ast, fn schema ->
     quote do
-      def schema, do: unquote(schema)
+      def schema do
+        Map.update!(unquote(schema), :options, fn options ->
+          Map.new(options, fn {key, option} ->
+            {key, Map.put(option, :validations, [])}
+          end)
+        end)
+      end
     end
   end
 
   @impl Executive.Task
   def run(argv, opts) do
     {argv, opts}
+  end
+
+  @spec validate_base64_switch(binary()) :: :ok | {:error, IO.chardata()}
+  defp validate_base64_switch(bytes) do
+    if byte_size(bytes) == 8 do
+      :ok
+    else
+      {:error, "Expected exactly 8 decoded bytes"}
+    end
+  end
+
+  @spec validate_positive(float()) :: :ok | :error
+  defp validate_positive(float) do
+    if float > 0 do
+      :ok
+    else
+      :error
+    end
   end
 end
