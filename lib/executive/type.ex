@@ -2,6 +2,42 @@
 defmodule Executive.Type do
   @moduledoc """
   Provides a behaviour for types that can be parsed from mix task args.
+
+  ## Building a custom type
+  Custom types can be defined by implementing the `Executive.Type` behaviour. To
+  build a regex type, for example, one could define a module like the following.
+
+      defmodule MyApp.ExecutiveTypes.Regex do
+        @behaviour Executive.Type
+
+        @impl Executive.Type
+        def name(_params) do
+          "regex"
+        end
+
+        @impl Executive.Type
+        def parse(_params, raw) do
+          case Regex.compile(raw) do
+            {:ok, regex} ->
+              {:ok, regex}
+
+            {:error, {reason, at}} ->
+              {:error, "\#{reason} at position \#{at}"}
+          end
+        end
+
+        @impl Executive.Type
+        def spec(_params) do
+          quote do
+            Regex.t()
+          end
+        end
+      end
+
+  This type can then be used like a built-in type.
+
+      option :my_option, MyApp.ExecutiveTypes.Regex
+
   """
 
   @typedoc """
@@ -32,6 +68,9 @@ defmodule Executive.Type do
   """
   @type alias() ::
           :base
+          | :base16
+          | :base32
+          | :base64
           | :boolean
           | :date
           | :datetime
@@ -44,6 +83,8 @@ defmodule Executive.Type do
           | :pos_integer
           | :string
           | :time
+          | :uri
+          | :url_base64
           | :uuid
 
   @typedoc """

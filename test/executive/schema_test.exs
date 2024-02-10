@@ -172,6 +172,33 @@ defmodule Executive.SchemaTest do
   end
 
   describe "parse/2" do
+    test "handles base16 switches" do
+      result =
+        Schema.new()
+        |> Schema.put_option(:my_option, :base16)
+        |> Schema.parse(["--my-option", "6d7920737472696e67"])
+
+      assert result == {:ok, [], my_option: "my string"}
+    end
+
+    test "handles base32 switches" do
+      result =
+        Schema.new()
+        |> Schema.put_option(:my_option, :base32)
+        |> Schema.parse(["--my-option", "nv4sa43uojuw4zy"])
+
+      assert result == {:ok, [], my_option: "my string"}
+    end
+
+    test "handles base64 switches" do
+      result =
+        Schema.new()
+        |> Schema.put_option(:my_option, :base64)
+        |> Schema.parse(["--my-option", "bUA/"])
+
+      assert result == {:ok, [], my_option: "m@?"}
+    end
+
     test "handles boolean switches" do
       result =
         Schema.new()
@@ -188,6 +215,24 @@ defmodule Executive.SchemaTest do
         |> Schema.parse(["--no-my-option"])
 
       assert result == {:ok, [], my_option: false}
+    end
+
+    test "handles date switches" do
+      result =
+        Schema.new()
+        |> Schema.put_option(:my_option, :date)
+        |> Schema.parse(["--my-option", "2024-01-01"])
+
+      assert result == {:ok, [], my_option: ~D[2024-01-01]}
+    end
+
+    test "handles datetime switches" do
+      result =
+        Schema.new()
+        |> Schema.put_option(:my_option, :datetime)
+        |> Schema.parse(["--my-option", "2024-01-01T00:00:00Z"])
+
+      assert result == {:ok, [], my_option: ~U[2024-01-01 00:00:00Z]}
     end
 
     test "handles enum switches" do
@@ -217,6 +262,15 @@ defmodule Executive.SchemaTest do
       assert result == {:ok, [], my_option: 0}
     end
 
+    test "handles naive datetime switches" do
+      result =
+        Schema.new()
+        |> Schema.put_option(:my_option, :naive_datetime)
+        |> Schema.parse(["--my-option", "2024-01-01T00:00:00"])
+
+      assert result == {:ok, [], my_option: ~N[2024-01-01 00:00:00Z]}
+    end
+
     test "handles string switches" do
       result =
         Schema.new()
@@ -224,6 +278,24 @@ defmodule Executive.SchemaTest do
         |> Schema.parse(["--my-option", "my string"])
 
       assert result == {:ok, [], my_option: "my string"}
+    end
+
+    test "handles time switches" do
+      result =
+        Schema.new()
+        |> Schema.put_option(:my_option, :time)
+        |> Schema.parse(["--my-option", "00:00:00"])
+
+      assert result == {:ok, [], my_option: ~T[00:00:00]}
+    end
+
+    test "handles URL-safe base64 switches" do
+      result =
+        Schema.new()
+        |> Schema.put_option(:my_option, :url_base64)
+        |> Schema.parse(["--my-option", "bUA_"])
+
+      assert result == {:ok, [], my_option: "m@?"}
     end
 
     test "handles uuid switches" do
