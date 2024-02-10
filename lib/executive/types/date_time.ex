@@ -17,7 +17,7 @@ defmodule Executive.Types.DateTime do
   end
 
   @impl Executive.Type
-  def parse(_params, _flag, raw) do
+  def parse(_params, raw) do
     case DateTime.from_iso8601(raw) do
       {:ok, datetime, _offset} ->
         {:ok, datetime}

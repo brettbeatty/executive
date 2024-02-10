@@ -17,7 +17,7 @@ defmodule Executive.Types.Time do
   end
 
   @impl Executive.Type
-  def parse(_params, _flag, raw) do
+  def parse(_params, raw) do
     case Time.from_iso8601(raw) do
       {:ok, time} ->
         {:ok, time}

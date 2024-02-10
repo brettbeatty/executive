@@ -12,11 +12,11 @@ defmodule Executive.Types.FloatTest do
 
   describe "parse/2" do
     test "parses float" do
-      assert FloatType.parse([], nil, "0.5") == {:ok, 0.5}
+      assert FloatType.parse([], "0.5") == {:ok, 0.5}
     end
 
     test "error if not a float" do
-      assert FloatType.parse([], nil, "5x") == :error
+      assert FloatType.parse([], "5x") == :error
     end
   end
 

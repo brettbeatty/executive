@@ -13,30 +13,18 @@ defmodule Executive.Schema.OptionTest do
     end
 
     @impl Executive.Type
-    def capture?(ref, switch_flag) do
-      send(self(), {ref, switch_flag: switch_flag})
-      receive!(ref)
-    end
-
-    @impl Executive.Type
     def name(ref) do
       receive!(ref)
     end
 
     @impl Executive.Type
-    def parse(ref, flag, raw) do
-      send(self(), {ref, raw: raw, flag: flag})
+    def parse(ref, raw) do
+      send(self(), {ref, raw: raw})
       receive!(ref)
     end
 
     @impl Executive.Type
     def spec(ref) do
-      receive!(ref)
-    end
-
-    @impl Executive.Type
-    def switches(ref, name, aliases) do
-      send(self(), {ref, name: name, aliases: aliases})
       receive!(ref)
     end
 
@@ -52,22 +40,6 @@ defmodule Executive.Schema.OptionTest do
   end
 
   defp error(_value), do: :error
-
-  describe "capture?/2" do
-    test "defaults to true" do
-      option = Option.new(:my_option, MyType, [])
-      assert Option.capture?(option, nil) == true
-    end
-
-    test "calls type's capture?/2 if implemented" do
-      switch_flag = make_ref()
-      ref = MockType.return(false)
-      option = Option.new(:my_option, {MockType, ref}, [])
-
-      assert Option.capture?(option, switch_flag) == false
-      assert_received {^ref, switch_flag: ^switch_flag}
-    end
-  end
 
   describe "docs/1" do
     test "builds docs without docstring" do
@@ -162,12 +134,11 @@ defmodule Executive.Schema.OptionTest do
   describe "parse_and_validate/2" do
     test "calls type's parse callback" do
       refined = make_ref()
-      flag = make_ref()
       ref = MockType.return({:ok, refined})
       option = Option.new(:my_option, {MockType, ref}, [])
 
-      assert Option.parse_and_validate(option, flag, "raw value") == {:ok, refined}
-      assert_received {^ref, raw: "raw value", flag: ^flag}
+      assert Option.parse_and_validate(option, "raw value") == {:ok, refined}
+      assert_received {^ref, raw: "raw value"}
     end
 
     test "allows passing validations" do
@@ -181,8 +152,8 @@ defmodule Executive.Schema.OptionTest do
 
       option = Option.new(:my_option, {MockType, ref}, validate: validate)
 
-      assert Option.parse_and_validate(option, nil, "raw value") == {:ok, refined}
-      assert_received {^ref, raw: "raw value", flag: nil}
+      assert Option.parse_and_validate(option, "raw value") == {:ok, refined}
+      assert_received {^ref, raw: "raw value"}
       assert_received {^ref, :validate}
     end
 
@@ -190,7 +161,7 @@ defmodule Executive.Schema.OptionTest do
       string = "my string"
       option = Option.new(:my_option, :string, validate: &error/1)
 
-      assert {:error, message} = Option.parse_and_validate(option, nil, string)
+      assert {:error, message} = Option.parse_and_validate(option, string)
 
       assert to_string(message) ==
                ~S(Value "my string" failed validation Executive.Schema.OptionTest.error/1)
@@ -202,7 +173,7 @@ defmodule Executive.Schema.OptionTest do
       validate = fn ^string -> {:error, message} end
       option = Option.new(:my_option, :string, validate: validate)
 
-      assert Option.parse_and_validate(option, nil, string) == {:error, message}
+      assert Option.parse_and_validate(option, string) == {:error, message}
     end
   end
 
@@ -213,78 +184,6 @@ defmodule Executive.Schema.OptionTest do
       option = Option.new(:my_option, {MockType, ref}, [])
 
       assert Option.spec(option) == spec
-    end
-  end
-
-  describe "switch/1" do
-    test "handles multi-word options" do
-      option = Option.new(:multi_word_option, MyType, [])
-      assert Option.switch(option) == "--multi-word-option"
-    end
-
-    test "handles single-word options" do
-      option = Option.new(:option, MyType, [])
-      assert Option.switch(option) == "--option"
-    end
-  end
-
-  describe "switches/1" do
-    test "creates switches for option without aliases" do
-      option = Option.new(:my_option, MyType, [])
-      assert Option.switches(option) == [{"--my-option", nil}]
-    end
-
-    test "creates switches for option with aliases" do
-      option = Option.new(:my_option, MyType, alias: :o)
-      assert Option.switches(option) == [{"--my-option", nil}, {"-o", nil}]
-    end
-
-    test "calls type's switches/2 if implemented" do
-      switches = [
-        {"--one-switch", make_ref()},
-        {"--another-switch", make_ref()},
-        {"-s", make_ref()}
-      ]
-
-      ref = MockType.return(switches)
-      option = Option.new(:my_option, {MockType, ref}, alias: [:m, :o])
-      assert Option.switches(option) == switches
-      assert_received {^ref, name: :my_option, aliases: [:m, :o]}
-    end
-  end
-
-  describe "switches/2" do
-    test "creates switch for name" do
-      assert Option.switches(:my_switch, []) == [{"--my-switch", nil}]
-    end
-
-    test "creates switches for name and aliases" do
-      expected_switches = [{"--my-switch", nil}, {"-m", nil}, {"-s", nil}]
-      assert Option.switches(:my_switch, [:m, :s]) == expected_switches
-    end
-  end
-
-  describe "switch_alias/1" do
-    test "prepends a dash" do
-      assert Option.switch_alias(:m) == "-m"
-    end
-
-    test "allows strings" do
-      assert Option.switch_alias("s") == "-s"
-    end
-  end
-
-  describe "switch_name/1" do
-    test "prepends two dashes" do
-      assert Option.switch_name(:option) == "--option"
-    end
-
-    test "replaces underscores with dashes" do
-      assert Option.switch_name(:my_switch) == "--my-switch"
-    end
-
-    test "allows strings" do
-      assert Option.switch_name("my_switch") == "--my-switch"
     end
   end
 

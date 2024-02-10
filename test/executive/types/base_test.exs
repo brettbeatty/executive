@@ -77,7 +77,7 @@ defmodule Executive.Types.BaseTest do
       encoded = Base.encode16(decoded, case: :upper)
       params = :"16"
 
-      assert BaseType.parse(params, nil, encoded) == {:ok, decoded}
+      assert BaseType.parse(params, encoded) == {:ok, decoded}
     end
 
     test "base 16 handles lowercase" do
@@ -85,7 +85,7 @@ defmodule Executive.Types.BaseTest do
       encoded = Base.encode16(decoded, case: :lower)
       params = :"16"
 
-      assert BaseType.parse(params, nil, encoded) == {:ok, decoded}
+      assert BaseType.parse(params, encoded) == {:ok, decoded}
     end
 
     test "base 16 can be restricted to uppercase" do
@@ -93,7 +93,7 @@ defmodule Executive.Types.BaseTest do
       encoded = Base.encode16(decoded, case: :lower)
       params = {:"16", case: :upper}
 
-      assert BaseType.parse(params, nil, encoded) == :error
+      assert BaseType.parse(params, encoded) == :error
     end
 
     test "base 16 handles required uppercase" do
@@ -101,7 +101,7 @@ defmodule Executive.Types.BaseTest do
       encoded = Base.encode16(decoded, case: :upper)
       params = {:"16", case: :upper}
 
-      assert BaseType.parse(params, nil, encoded) == {:ok, decoded}
+      assert BaseType.parse(params, encoded) == {:ok, decoded}
     end
 
     test "base 16 can be restricted to lowercase" do
@@ -109,7 +109,7 @@ defmodule Executive.Types.BaseTest do
       encoded = Base.encode16(decoded, case: :upper)
       params = {:"16", case: :lower}
 
-      assert BaseType.parse(params, nil, encoded) == :error
+      assert BaseType.parse(params, encoded) == :error
     end
 
     test "base 16 handles required lowercase" do
@@ -117,7 +117,7 @@ defmodule Executive.Types.BaseTest do
       encoded = Base.encode16(decoded, case: :lower)
       params = {:"16", case: :lower}
 
-      assert BaseType.parse(params, nil, encoded) == {:ok, decoded}
+      assert BaseType.parse(params, encoded) == {:ok, decoded}
     end
 
     test "base 32 handles uppercase" do
@@ -125,7 +125,7 @@ defmodule Executive.Types.BaseTest do
       encoded = Base.encode32(decoded, case: :upper)
       params = :"32"
 
-      assert BaseType.parse(params, nil, encoded) == {:ok, decoded}
+      assert BaseType.parse(params, encoded) == {:ok, decoded}
     end
 
     test "base 32 handles lowercase" do
@@ -133,7 +133,7 @@ defmodule Executive.Types.BaseTest do
       encoded = Base.encode32(decoded, case: :lower)
       params = :"32"
 
-      assert BaseType.parse(params, nil, encoded) == {:ok, decoded}
+      assert BaseType.parse(params, encoded) == {:ok, decoded}
     end
 
     test "base 32 can be restricted to uppercase" do
@@ -141,7 +141,7 @@ defmodule Executive.Types.BaseTest do
       encoded = Base.encode32(decoded, case: :lower)
       params = {:"32", case: :upper}
 
-      assert BaseType.parse(params, nil, encoded) == :error
+      assert BaseType.parse(params, encoded) == :error
     end
 
     test "base 32 handles required uppercase" do
@@ -149,7 +149,7 @@ defmodule Executive.Types.BaseTest do
       encoded = Base.encode32(decoded, case: :upper)
       params = {:"32", case: :upper}
 
-      assert BaseType.parse(params, nil, encoded) == {:ok, decoded}
+      assert BaseType.parse(params, encoded) == {:ok, decoded}
     end
 
     test "base 32 can be restricted to lowercase" do
@@ -157,7 +157,7 @@ defmodule Executive.Types.BaseTest do
       encoded = Base.encode32(decoded, case: :upper)
       params = {:"32", case: :lower}
 
-      assert BaseType.parse(params, nil, encoded) == :error
+      assert BaseType.parse(params, encoded) == :error
     end
 
     test "base 32 handles required lowercase" do
@@ -165,7 +165,7 @@ defmodule Executive.Types.BaseTest do
       encoded = Base.encode32(decoded, case: :lower)
       params = {:"32", case: :lower}
 
-      assert BaseType.parse(params, nil, encoded) == {:ok, decoded}
+      assert BaseType.parse(params, encoded) == {:ok, decoded}
     end
 
     test "base 32 handles padded" do
@@ -174,7 +174,7 @@ defmodule Executive.Types.BaseTest do
       params = :"32"
 
       assert String.ends_with?(encoded, "=")
-      assert BaseType.parse(params, nil, encoded) == {:ok, decoded}
+      assert BaseType.parse(params, encoded) == {:ok, decoded}
     end
 
     test "base 32 handles unpadded" do
@@ -183,7 +183,7 @@ defmodule Executive.Types.BaseTest do
       params = :"32"
 
       refute String.ends_with?(encoded, "=")
-      assert BaseType.parse(params, nil, encoded) == {:ok, decoded}
+      assert BaseType.parse(params, encoded) == {:ok, decoded}
     end
 
     test "base 32 can require padding" do
@@ -192,7 +192,7 @@ defmodule Executive.Types.BaseTest do
       params = {:"32", padding: true}
 
       refute String.ends_with?(encoded, "=")
-      assert BaseType.parse(params, nil, encoded) == :error
+      assert BaseType.parse(params, encoded) == :error
     end
 
     test "base 32 can handle required padding" do
@@ -201,7 +201,7 @@ defmodule Executive.Types.BaseTest do
       params = {:"32", padding: true}
 
       assert String.ends_with?(encoded, "=")
-      assert BaseType.parse(params, nil, encoded) == {:ok, decoded}
+      assert BaseType.parse(params, encoded) == {:ok, decoded}
     end
 
     test "base 64 handles padded" do
@@ -210,7 +210,7 @@ defmodule Executive.Types.BaseTest do
       params = :"64"
 
       assert String.ends_with?(encoded, "=")
-      assert BaseType.parse(params, nil, encoded) == {:ok, decoded}
+      assert BaseType.parse(params, encoded) == {:ok, decoded}
     end
 
     test "base 64 handles unpadded" do
@@ -219,7 +219,7 @@ defmodule Executive.Types.BaseTest do
       params = :"64"
 
       refute String.ends_with?(encoded, "=")
-      assert BaseType.parse(params, nil, encoded) == {:ok, decoded}
+      assert BaseType.parse(params, encoded) == {:ok, decoded}
     end
 
     test "base 64 can require padding" do
@@ -228,7 +228,7 @@ defmodule Executive.Types.BaseTest do
       params = {:"64", padding: true}
 
       refute String.ends_with?(encoded, "=")
-      assert BaseType.parse(params, nil, encoded) == :error
+      assert BaseType.parse(params, encoded) == :error
     end
 
     test "base 64 handles required padding" do
@@ -237,7 +237,7 @@ defmodule Executive.Types.BaseTest do
       params = {:"64", padding: true}
 
       assert String.ends_with?(encoded, "=")
-      assert BaseType.parse(params, nil, encoded) == {:ok, decoded}
+      assert BaseType.parse(params, encoded) == {:ok, decoded}
     end
 
     test "URL 64 handles padded" do
@@ -246,7 +246,7 @@ defmodule Executive.Types.BaseTest do
       params = :url_64
 
       assert String.ends_with?(encoded, "=")
-      assert BaseType.parse(params, nil, encoded) == {:ok, decoded}
+      assert BaseType.parse(params, encoded) == {:ok, decoded}
     end
 
     test "URL 64 handles unpadded" do
@@ -255,7 +255,7 @@ defmodule Executive.Types.BaseTest do
       params = :url_64
 
       refute String.ends_with?(encoded, "=")
-      assert BaseType.parse(params, nil, encoded) == {:ok, decoded}
+      assert BaseType.parse(params, encoded) == {:ok, decoded}
     end
 
     test "URL 64 can require padding" do
@@ -264,7 +264,7 @@ defmodule Executive.Types.BaseTest do
       params = {:url_64, padding: true}
 
       refute String.ends_with?(encoded, "=")
-      assert BaseType.parse(params, nil, encoded) == :error
+      assert BaseType.parse(params, encoded) == :error
     end
 
     test "URL 64 handles required padding" do
@@ -273,7 +273,7 @@ defmodule Executive.Types.BaseTest do
       params = {:url_64, padding: true}
 
       assert String.ends_with?(encoded, "=")
-      assert BaseType.parse(params, nil, encoded) == {:ok, decoded}
+      assert BaseType.parse(params, encoded) == {:ok, decoded}
     end
   end
 

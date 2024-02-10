@@ -31,7 +31,7 @@ defmodule Executive.Types.Float do
   end
 
   @impl Executive.Type
-  def parse(_params, _flag, raw) do
+  def parse(_params, raw) do
     case Float.parse(raw) do
       {refined, ""} ->
         {:ok, refined}

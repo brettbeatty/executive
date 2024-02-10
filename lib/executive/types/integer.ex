@@ -94,7 +94,7 @@ defmodule Executive.Types.Integer do
   end
 
   @impl Executive.Type
-  def parse(params, _flag, raw) do
+  def parse(params, raw) do
     with {:ok, refined} <- parse_integer(raw),
          :ok <- check_bounds(params, refined) do
       {:ok, refined}

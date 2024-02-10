@@ -14,17 +14,17 @@ defmodule Executive.Types.TimeTest do
     test "parses iso 8601" do
       raw = "12:34:56.789"
       expected = ~T[12:34:56.789]
-      assert TimeType.parse([], nil, raw) == {:ok, expected}
+      assert TimeType.parse([], raw) == {:ok, expected}
     end
 
     test "error if format invalid" do
       raw = "12:34 P.M."
-      assert TimeType.parse([], nil, raw) == :error
+      assert TimeType.parse([], raw) == :error
     end
 
     test "error if time invalid" do
       raw = "23:45:67"
-      assert TimeType.parse([], nil, raw) == {:error, "invalid time"}
+      assert TimeType.parse([], raw) == {:error, "invalid time"}
     end
   end
 

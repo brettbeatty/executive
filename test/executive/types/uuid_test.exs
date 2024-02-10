@@ -13,11 +13,11 @@ defmodule Executive.Types.UUIDTest do
   describe "parse/2" do
     test "returns as is if format matches" do
       uuid = "87a4c922-9728-4f93-bfd2-1d9c52873725"
-      assert UUIDType.parse([], nil, uuid) == {:ok, uuid}
+      assert UUIDType.parse([], uuid) == {:ok, uuid}
     end
 
     test "returns error if format does not match" do
-      assert UUIDType.parse([], nil, "afad1dfb") == :error
+      assert UUIDType.parse([], "afad1dfb") == :error
     end
   end
 

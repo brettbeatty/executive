@@ -54,7 +54,7 @@ defmodule Executive.Types.URI do
   end
 
   @impl Executive.Type
-  def parse(params, _flag, raw) do
+  def parse(params, raw) do
     with {:ok, parsed} <- parse_uri(raw),
          :ok <- require_parts(parsed, params) do
       {:ok, format(parsed, raw, params)}

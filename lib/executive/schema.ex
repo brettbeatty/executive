@@ -4,7 +4,6 @@ defmodule Executive.Schema do
   """
   alias Executive.ParseError
   alias Executive.Schema.Option
-  alias Executive.Type
 
   @typedoc """
   Mix tasks receive a list of strings that may have switches.
@@ -28,12 +27,11 @@ defmodule Executive.Schema do
 
   @typep parse_acc() :: %{
            argv: argv(),
-           error: ParseError.t(),
+           errors: [{String.t(), IO.chardata()}],
            opts: keyword(),
            schema: t(),
            seen: MapSet.t(Option.name())
          }
-  @typep switch_map() :: %{String.t() => {Option.t(), Type.switch_flag()}}
 
   defstruct [:options]
 
@@ -180,125 +178,148 @@ defmodule Executive.Schema do
   def parse(schema, argv) do
     acc = %{
       argv: [],
-      error: ParseError.new(),
+      errors: [],
       opts: [],
       schema: schema,
       seen: MapSet.new()
     }
 
-    parse(acc, argv, build_switch_map(schema))
+    parse(acc, argv, build_parse_opts(schema))
   end
 
-  @spec build_switch_map(t()) :: %{String.t() => {Option.t(), Type.switch_flag()}}
-  defp build_switch_map(schema) do
+  @spec build_parse_opts(t()) :: OptionParser.options()
+  defp build_parse_opts(schema) do
+    [
+      strict: switches(schema),
+      aliases: aliases(schema)
+    ]
+  end
+
+  @spec switches(t()) :: [{atom(), :boolean | :string}]
+  defp switches(schema) do
+    for option <- options(schema) do
+      raw_type =
+        if option.type == Executive.Types.Boolean do
+          :boolean
+        else
+          :string
+        end
+
+      {option.name, raw_type}
+    end
+  end
+
+  @spec aliases(t()) :: [{atom(), atom()}]
+  defp aliases(schema) do
     for option <- options(schema),
-        {switch, switch_flags} <- Option.switches(option),
-        into: %{} do
-      {switch, {option, switch_flags}}
+        alias <- option.aliases do
+      {alias, option.name}
     end
   end
 
-  @spec parse(parse_acc(), argv(), switch_map()) ::
+  @spec parse(parse_acc(), argv(), OptionParser.options()) ::
           {:ok, argv(), keyword()} | {:error, ParseError.t()}
-  defp parse(acc, argv, switches)
-
   # credo:disable-for-next-line Credo.Check.Refactor.ABCSize
-  defp parse(acc, [switch = <<"-", next::8, _rest::binary>> | argv], switches)
-       when next == ?- or next in ?A..?Z or next in ?a..?z do
-    case parse_switch(switch, switches, argv) do
-      {:ok, option, value, new_argv} ->
+  defp parse(acc, argv, parse_opts) do
+    case OptionParser.next(argv, parse_opts) do
+      {:ok, name, value, rest} ->
         acc
-        |> Map.update!(:opts, &[{option.name, value} | &1])
-        |> Map.update!(:seen, &MapSet.put(&1, option.name))
-        |> parse(new_argv, switches)
+        |> parse_and_validate(name, value, hd(argv))
+        |> put_seen(name)
+        |> parse(rest, parse_opts)
 
-      {:error, option_name, message} ->
+      {:invalid, switch, nil, rest} ->
+        option = lookup_option(acc, switch)
+
         acc
-        |> Map.update!(:error, &ParseError.put_switch_error(&1, switch, message))
-        |> Map.update!(:seen, &MapSet.put(&1, option_name))
-        |> parse(argv, switches)
+        |> put_error(switch, ["Missing argument of type " | Option.type_name(option)])
+        |> put_seen(option.name)
+        |> parse(rest, parse_opts)
+
+      {:undefined, switch, _value, rest} ->
+        acc
+        |> put_error(switch, "Unknown option")
+        |> parse(rest, parse_opts)
+
+      {:error, [arg | rest]} ->
+        acc
+        |> Map.update!(:argv, &[arg | &1])
+        |> parse(rest, parse_opts)
+
+      {:error, []} ->
+        to_parse_result(acc)
     end
   end
 
-  defp parse(acc, [arg | argv], switches) do
-    acc
-    |> Map.update!(:argv, &[arg | &1])
-    |> parse(argv, switches)
-  end
+  @spec parse_and_validate(parse_acc(), atom(), String.t() | boolean(), String.t()) :: parse_acc()
+  defp parse_and_validate(acc, key, value, switch)
 
-  defp parse(acc, [], _switches) do
-    %{argv: argv, error: error, opts: opts} = check_required(acc)
+  defp parse_and_validate(acc, key, value, switch) when is_binary(value) do
+    case acc |> lookup_option(key) |> Option.parse_and_validate(value) do
+      {:ok, parsed_value} ->
+        put_parsed_option(acc, key, parsed_value)
 
-    with :ok <- ParseError.check_empty(error) do
-      {:ok, Enum.reverse(argv), resolve_unique(opts, acc.schema, [], MapSet.new())}
+      {:error, error} ->
+        put_error(acc, switch, error)
     end
   end
 
-  @spec parse_switch(String.t(), switch_map(), [String.t()]) ::
-          {:ok, Option.t(), term(), [String.t()]} | {:error, Option.name() | nil, IO.chardata()}
-  defp parse_switch(switch, switches, argv) do
-    with {:ok, option, switch_flag} <- lookup_switch(switches, switch),
-         {:ok, raw_value, new_argv} <- capture(option, switch_flag, argv),
-         {:ok, refined_value} <- parse_option(option, switch_flag, raw_value) do
-      {:ok, option, refined_value, new_argv}
-    end
+  defp parse_and_validate(acc, key, value, _switch) when is_boolean(value) do
+    put_parsed_option(acc, key, value)
   end
 
-  @spec lookup_switch(switch_map(), String.t()) ::
-          {:ok, Option.t(), Type.switch_flag()} | {:error, nil, IO.chardata()}
-  defp lookup_switch(switches, switch) do
-    case Map.fetch(switches, switch) do
-      {:ok, {option, switch_flag}} ->
-        {:ok, option, switch_flag}
+  @spec lookup_option(parse_acc(), atom() | String.t()) :: Option.t()
+  defp lookup_option(acc, name_or_switch)
 
-      :error ->
-        {:error, nil, "Unknown option"}
-    end
+  defp lookup_option(acc, name) when is_atom(name) do
+    %{schema: %__MODULE__{options: %{^name => option}}} = acc
+    option
   end
 
-  @spec capture(Option.t(), Type.switch_flag(), [String.t()]) ::
-          {:ok, String.t() | nil, [String.t()]} | {:error, Option.name(), IO.chardata()}
-  defp capture(option, switch_flag, argv) do
-    if Option.capture?(option, switch_flag) do
-      case argv do
-        [<<"-", next::8, _rest::binary>> | _argv]
-        when next == ?- or next in ?A..?Z or next in ?a..?z ->
-          {:error, option.name, ["Missing argument of type " | Option.type_name(option)]}
-
-        [raw_value | new_argv] ->
-          {:ok, raw_value, new_argv}
-
-        [] ->
-          {:error, option.name, ["Missing argument of type " | Option.type_name(option)]}
-      end
-    else
-      {:ok, nil, argv}
-    end
+  defp lookup_option(acc, switch) when is_binary(switch) do
+    {[{name, true}], []} = OptionParser.parse!([switch], switches: [])
+    lookup_option(acc, name)
   end
 
-  @spec parse_option(Option.t(), Type.switch_flag(), String.t()) ::
-          {:ok, term()} | {:error, Option.name(), IO.chardata()}
-  defp parse_option(option, switch_flag, raw_value) do
-    with {:error, message} <- Option.parse_and_validate(option, switch_flag, raw_value) do
-      {:error, option.name, message}
+  @spec put_parsed_option(parse_acc(), atom(), term()) :: parse_acc()
+  defp put_parsed_option(acc, name, value) do
+    Map.update!(acc, :opts, &[{name, value} | &1])
+  end
+
+  @spec put_error(parse_acc(), String.t(), IO.chardata()) :: parse_acc()
+  defp put_error(acc, switch, message) do
+    Map.update!(acc, :errors, &[{switch, message} | &1])
+  end
+
+  @spec put_seen(parse_acc(), atom()) :: parse_acc()
+  defp put_seen(acc, name) do
+    Map.update!(acc, :seen, &MapSet.put(&1, name))
+  end
+
+  @spec to_parse_result(parse_acc()) :: {:ok, argv(), keyword()} | {:error, ParseError.t()}
+  defp to_parse_result(acc) do
+    %{argv: argv, errors: errors, opts: opts, schema: schema} = check_required(acc)
+
+    case errors do
+      [] ->
+        {:ok, Enum.reverse(argv), resolve_unique(opts, schema, [], MapSet.new())}
+
+      [_ | _] ->
+        {:error, errors |> Enum.reverse() |> ParseError.exception()}
     end
   end
 
   @spec check_required(parse_acc()) :: parse_acc()
   defp check_required(acc) do
-    Map.update!(acc, :error, fn error ->
-      for option <- options(acc.schema), reduce: error do
-        error ->
-          [{switch, _switch_flag} | _switches] = Option.switches(option)
-
-          if option.required and not MapSet.member?(acc.seen, option.name) do
-            message = ["Missing argument of type " | Option.type_name(option)]
-            ParseError.put_switch_error(error, switch, message)
-          else
-            error
-          end
-      end
-    end)
+    for option <- options(acc.schema), reduce: acc do
+      acc ->
+        if option.required and not MapSet.member?(acc.seen, option.name) do
+          [switch] = OptionParser.to_argv([{option.name, true}])
+          put_error(acc, switch, ["Missing argument of type " | Option.type_name(option)])
+        else
+          acc
+        end
+    end
   end
 
   @spec resolve_unique(keyword(), t(), keyword(), MapSet.t(Option.name())) :: keyword()

@@ -48,71 +48,71 @@ defmodule Executive.Types.IntegerTest do
 
   describe "parse/2" do
     test "parses integer" do
-      assert IntegerType.parse([], nil, "12") == {:ok, 12}
+      assert IntegerType.parse([], "12") == {:ok, 12}
     end
 
     test "accepts integer > min" do
-      assert IntegerType.parse([min: 1], nil, "2") == {:ok, 2}
+      assert IntegerType.parse([min: 1], "2") == {:ok, 2}
     end
 
     test "accepts integer = min" do
-      assert IntegerType.parse([min: 0], nil, "0") == {:ok, 0}
+      assert IntegerType.parse([min: 0], "0") == {:ok, 0}
     end
 
     test "error if integer < min" do
-      assert IntegerType.parse([min: -1], nil, "-2") == :error
+      assert IntegerType.parse([min: -1], "-2") == :error
     end
 
     test "accepts integer < max" do
-      assert IntegerType.parse([max: 2], nil, "1") == {:ok, 1}
+      assert IntegerType.parse([max: 2], "1") == {:ok, 1}
     end
 
     test "accepts integer = max" do
-      assert IntegerType.parse([max: -3], nil, "-3") == {:ok, -3}
+      assert IntegerType.parse([max: -3], "-3") == {:ok, -3}
     end
 
     test "error if integer > max" do
-      assert IntegerType.parse([max: -1], nil, "0") == :error
+      assert IntegerType.parse([max: -1], "0") == :error
     end
 
     test "error if integer < min < max" do
-      assert IntegerType.parse([min: 0, max: 1], nil, "-1") == :error
+      assert IntegerType.parse([min: 0, max: 1], "-1") == :error
     end
 
     test "accepts min = integer < max" do
-      assert IntegerType.parse([min: 2, max: 4], nil, "2") == {:ok, 2}
+      assert IntegerType.parse([min: 2, max: 4], "2") == {:ok, 2}
     end
 
     test "accepts min < integer < max" do
-      assert IntegerType.parse([min: -1, max: 1], nil, "0") == {:ok, 0}
+      assert IntegerType.parse([min: -1, max: 1], "0") == {:ok, 0}
     end
 
     test "accepts min < integer = max" do
-      assert IntegerType.parse([min: -2, max: 3], nil, "3") == {:ok, 3}
+      assert IntegerType.parse([min: -2, max: 3], "3") == {:ok, 3}
     end
 
     test "error if min < max < integer" do
-      assert IntegerType.parse([min: -3, max: 5], nil, "6") == :error
+      assert IntegerType.parse([min: -3, max: 5], "6") == :error
     end
 
     test "error if integer < min < max from range" do
-      assert IntegerType.parse(-6..6, nil, "-7") == :error
+      assert IntegerType.parse(-6..6, "-7") == :error
     end
 
     test "accepts min = integer < max from range" do
-      assert IntegerType.parse(-4..8, nil, "-4") == {:ok, -4}
+      assert IntegerType.parse(-4..8, "-4") == {:ok, -4}
     end
 
     test "accepts min < integer < max from range" do
-      assert IntegerType.parse(19..23, nil, "20") == {:ok, 20}
+      assert IntegerType.parse(19..23, "20") == {:ok, 20}
     end
 
     test "accepts min < integer = max from range" do
-      assert IntegerType.parse(-15..42, nil, "42") == {:ok, 42}
+      assert IntegerType.parse(-15..42, "42") == {:ok, 42}
     end
 
     test "error if min < max < integer from range" do
-      assert IntegerType.parse(16..23, nil, "25") == :error
+      assert IntegerType.parse(16..23, "25") == :error
     end
   end
 

@@ -17,7 +17,7 @@ defmodule Executive.Types.String do
   end
 
   @impl Executive.Type
-  def parse(_params, _flag, raw) do
+  def parse(_params, raw) do
     {:ok, raw}
   end
 

@@ -111,7 +111,7 @@ defmodule Executive.Types.Base do
   defp padding_name(name, false), do: name
 
   @impl Executive.Type
-  def parse(params, _flag, raw) do
+  def parse(params, raw) do
     case normalize(params) do
       {:"16", case} ->
         Base.decode16(raw, case: case)

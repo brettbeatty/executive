@@ -17,7 +17,7 @@ defmodule Executive.Types.NaiveDateTime do
   end
 
   @impl Executive.Type
-  def parse(_params, _flag, raw) do
+  def parse(_params, raw) do
     case NaiveDateTime.from_iso8601(raw) do
       {:ok, datetime} ->
         {:ok, datetime}

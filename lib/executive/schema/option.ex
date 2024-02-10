@@ -62,35 +62,6 @@ defmodule Executive.Schema.Option do
   defstruct [:aliases, :doc, :name, :required, :type, :type_params, :unique, :validations]
 
   @doc """
-  Whether `option` switch with `switch_flag` should capture the next value.
-
-  For most option types this will return true.
-
-      iex> option = Option.new(:my_option, MyType, [])
-      iex> Option.capture?(option, nil)
-      true
-
-  But types that implement `c:Executive.Type.capture?/2` may choose to return
-  false.
-
-      iex> option = Option.new(:my_option, :boolean, [])
-      iex> Option.capture?(option, true)
-      false
-
-  """
-  @spec capture?(t(), Type.switch_flag()) :: boolean()
-  def capture?(option, switch_flag) do
-    %__MODULE__{type: type, type_params: type_params} = option
-    Code.ensure_loaded(type)
-
-    if function_exported?(type, :capture?, 2) do
-      type.capture?(type_params, switch_flag)
-    else
-      true
-    end
-  end
-
-  @doc """
   Build chardata documenting `option`.
   """
   @spec docs(t()) :: IO.chardata()
@@ -100,7 +71,7 @@ defmodule Executive.Schema.Option do
     switches =
       option
       |> switches()
-      |> Enum.map(fn {switch, _flag} -> [?`, switch, ?`] end)
+      |> Enum.map(&[?`, &1, ?`])
       |> Enum.intersperse(", ")
 
     required_string = if required, do: ", required", else: []
@@ -114,6 +85,20 @@ defmodule Executive.Schema.Option do
       required_string,
       docstring
     ]
+  end
+
+  @spec switches(t()) :: [String.t()]
+  defp switches(option) do
+    %__MODULE__{aliases: aliases, name: name, type: type} = option
+
+    keyword =
+      if type == Executive.Types.Boolean do
+        [{name, true}, {name, false}]
+      else
+        [{name, true}]
+      end
+
+    OptionParser.to_argv(keyword) ++ Enum.map(aliases, &"-#{&1}")
   end
 
   @doc """
@@ -148,24 +133,22 @@ defmodule Executive.Schema.Option do
   @doc """
   Parses `raw` using `option`'s type and validations.
 
-  Dispatches to type's `c:Executive.Type.parse/3` implementation as well as
+  Dispatches to type's `c:Executive.Type.parse/2` implementation as well as
   option's validations.
   """
-  @spec parse_and_validate(t(), Type.switch_flag(), String.t() | nil) ::
-          {:ok, term()} | {:error, IO.chardata()}
-  def parse_and_validate(option, flag, raw) do
-    with {:ok, value} <- parse(option, flag, raw),
+  @spec parse_and_validate(t(), String.t() | nil) :: {:ok, term()} | {:error, IO.chardata()}
+  def parse_and_validate(option, raw) do
+    with {:ok, value} <- parse(option, raw),
          :ok <- validate(option, value) do
       {:ok, value}
     end
   end
 
-  @spec parse(t(), Type.switch_flag(), String.t() | nil) ::
-          {:ok, term()} | {:error, IO.chardata()}
-  defp parse(option, flag, raw) do
+  @spec parse(t(), String.t() | nil) :: {:ok, term()} | {:error, IO.chardata()}
+  defp parse(option, raw) do
     %__MODULE__{type: type, type_params: params} = option
 
-    with :error <- type.parse(params, flag, raw) do
+    with :error <- type.parse(params, raw) do
       {:error, ["Expected type ", type_name(option), ", got ", inspect(raw)]}
     end
   end
@@ -208,87 +191,6 @@ defmodule Executive.Schema.Option do
   def spec(option) do
     %__MODULE__{type: type, type_params: params} = option
     type.spec(params)
-  end
-
-  @doc """
-  Gets the switch name corresponding with `option`.
-
-      iex> option = Option.new(:my_option, MyType, [])
-      iex> Option.switch(option)
-      "--my-option"
-
-  """
-  @spec switch(t()) :: String.t()
-  def switch(option) do
-    %__MODULE__{name: name} = option
-    [switch_name] = OptionParser.to_argv([{name, true}])
-    switch_name
-  end
-
-  @doc """
-  Build the available switches for `option`.
-
-  This dispatches to type's `c:Executive.Type.switches/3` if implemented.
-  """
-  @spec switches(t()) :: [{String.t(), Type.switch_flag()}]
-  def switches(option) do
-    %__MODULE__{aliases: aliases, name: name, type: type, type_params: type_params} = option
-    Code.ensure_loaded(type)
-
-    if function_exported?(type, :switches, 3) do
-      type.switches(type_params, name, aliases)
-    else
-      switches(name, aliases)
-    end
-  end
-
-  @doc """
-  Build switches for option `name` and `aliases`.
-
-  This serves as a default implementation for `c:Executive.Type.switches/3`.
-  """
-  @spec switches(name(), [alias()]) :: [{String.t(), Type.switch_flag()}]
-  def switches(name, aliases) do
-    [{switch_name(name), nil} | Enum.map(aliases, &{switch_alias(&1), nil})]
-  end
-
-  @doc """
-  Create a switch string from option `alias`.
-
-      iex> Option.switch_alias(:s)
-      "-s"
-
-  Option `alias` can also be a string. This can be used in
-  `c:Executive.Type.switches/3` for generated switch aliases.
-
-      iex> Option.switch_alias("v")
-      "-v"
-
-  """
-  @spec switch_alias(alias() | String.t()) :: String.t()
-  def switch_alias(alias) do
-    "-#{alias}"
-  end
-
-  @doc """
-  Create a switch string from option `name`.
-
-      iex> Option.switch_name(:my_switch)
-      "--my-switch"
-
-  Option `name` can also be a string. This can be used in
-  `c:Executive.Type.switches/3` for generated switch names.
-
-      iex> Option.switch_name("no_my_switch")
-      "--no-my-switch"
-
-  """
-  @spec switch_name(name() | String.t()) :: String.t()
-  def switch_name(name) do
-    name
-    |> to_string()
-    |> String.replace("_", "-")
-    |> then(&<<"--", &1::binary>>)
   end
 
   @doc """

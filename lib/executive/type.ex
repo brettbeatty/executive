@@ -3,7 +3,6 @@ defmodule Executive.Type do
   @moduledoc """
   Provides a behaviour for types that can be parsed from mix task args.
   """
-  alias Executive.Schema.Option
 
   @typedoc """
   Aliases can be used in lieu of module names for built-in types.
@@ -55,16 +54,6 @@ defmodule Executive.Type do
   @type params() :: term() | []
 
   @typedoc """
-  Some types may parse differently based on the switch provided.
-
-  Such types should implement `c:switches/3` and give switches flags
-  that will be passed into `c:capture?/2` and `c:parse/3`.
-
-  Any type that doesn't implement `c:switches/3` will receive a `nil` flag.
-  """
-  @type switch_flag() :: term() | nil
-
-  @typedoc """
   Executive types implement `Executive.Type` behaviour.
 
   But the `t:t/0` typespec includes more than these modules:
@@ -75,22 +64,13 @@ defmodule Executive.Type do
   @type t() :: alias() | module()
 
   @doc """
-  Whether to capture the value after the switch.
-
-  Most types of switches capture a value, but some--such as boolean switches--do
-  not. Types that do not need to capture a value should implement this callback
-  and return false.
-  """
-  @callback capture?(params(), switch_flag()) :: boolean()
-
-  @doc """
   Each type should provide a friendly name.
 
   This name can appear in a number of places:
     - when options of type are missing
       - switch is given but has no value to capture
       - option is required, but switch isn't given
-    - default error message if `c:parse/3` returns `:error`
+    - default error message if `c:parse/2` returns `:error`
     - when docs are built for options of type
 
   Typically this name is a string, but implementations may choose to return any
@@ -101,13 +81,10 @@ defmodule Executive.Type do
   @doc """
   Parse a raw value to build a refined value.
 
-  This callback receives 3 args:
+  This callback receives 2 args:
     - the type params given when creating the option
       - empty list if no parameters given
-    - switch flag associated with the switch used
-      - nil unless `c:switches/3` implemented
     - raw value string
-      - nil if `c:capture?/2` is implemented and returns false
 
   There are also 3 things that can be returned:
     - `{:ok, refined_value}` if the raw value parses successfully
@@ -125,11 +102,10 @@ defmodule Executive.Type do
   Custom error messasges can be a string, but the error messages are compiled
   into a larger string, so individual messages can be any chardata.
   """
-  @callback parse(params(), switch_flag(), String.t() | nil) ::
-              {:ok, term()} | :error | {:error, IO.chardata()}
+  @callback parse(params(), String.t() | nil) :: {:ok, term()} | :error | {:error, IO.chardata()}
 
   @doc """
-  Each type should provide a spec for the refined value returned by `c:parse/3`.
+  Each type should provide a spec for the refined value returned by `c:parse/2`.
 
   This spec should be returned as a quoted AST.
 
@@ -148,29 +124,6 @@ defmodule Executive.Type do
 
   """
   @callback spec(params()) :: Macro.t()
-
-  @doc """
-  Generate switches for option name and aliases.
-
-  Some types may parse differently based on the switch provided. Boolean
-  switches, for example, don't capture the value after them. Instead they rely
-  on knowing whether the primary switch or negation switch was given.
-
-  These types should implement `c:switches/3` and give each switch a flag that
-  will be passed in to `c:capture?/2` and `c:parse/3`.
-
-  `Executive.Schema.Option` provides functions to aid in implementing this task:
-    - `Executive.Schema.Option.switch_name/1` builds a switch name for an
-      `t:Executive.Schema.Option.name/0` or its string equivalent.
-    - `Executive.Schema.Option.switch_alias/1` builds a switch alias for an
-      `t:Executive.Schema.Option.alias/0` or its string equivalent.
-
-  Any type that doesn't implement this callback will receive a nil switch flag
-  in `c:capture?/2` and `c:parse/3`.
-  """
-  @callback switches(params(), Option.name(), [Option.alias()]) :: [{String.t(), switch_flag()}]
-
-  @optional_callbacks capture?: 2, switches: 3
 
   @doc """
   Resolves alias `type` and `params` into concrete type and params.

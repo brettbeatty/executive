@@ -26,7 +26,7 @@ defmodule Executive.Types.UUID do
   end
 
   @impl Executive.Type
-  def parse(_params, _flag, raw) do
+  def parse(_params, raw) do
     uppercase = String.upcase(raw)
 
     with <<a::8-bytes, ?-, b::4-bytes, ?-, c::4-bytes, ?-, d::4-bytes, ?-, e::12-bytes>> <-
