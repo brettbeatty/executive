@@ -49,9 +49,14 @@ defmodule Mix.Tasks.SomeOtherThing.Do do
 
   """
   use Executive.Task
+  alias Executive.Schema
 
-  option_type option()
-  options_type options()
+  with_schema fn schema ->
+    quote do
+      @typep option() :: unquote(Schema.option_typespec(schema))
+      @typep options() :: unquote(Schema.options_typespec(schema))
+    end
+  end
 
   option :message, :string, unique: false, alias: :m
 

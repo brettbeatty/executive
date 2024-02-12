@@ -155,7 +155,7 @@ defmodule Executive.TaskTest do
     end
   end
 
-  describe "option_type/2" do
+  describe "option type hook" do
     test "builds type for option" do
       actual_type = module_type(MockTask, :option, 0)
 
@@ -171,7 +171,7 @@ defmodule Executive.TaskTest do
     end
   end
 
-  describe "options_type/2" do
+  describe "options type hook" do
     test "builds type for options" do
       actual_type = module_type(MockTask, :options, 0)
 

@@ -116,85 +116,6 @@ defmodule Executive.Task do
     ["EXECUTIVE_OPTION_DOCS{", names |> :erlang.term_to_binary() |> Base.encode64(), "}"]
   end
 
-  @doc """
-  Builds a type named `name` from schema options.
-
-      option :my_enum, {:enum, [:lite, :basic, :premier]}
-      option :my_string, :string
-      option :my_uuid, :uuid
-
-      option_type option()
-      # Equivalent:
-      # @type option() ::
-      #         {:my_enum, :lite | :basic | :premier}
-      #         | {:my_string, String.t()}
-      #         | {:my_uuid, <<_::288>>}
-
-  Supports options `:only` and `:except`.
-
-      option :my_boolean, :boolean
-      option :my_float, :float
-      option :my_integer, :integer
-
-      option_type option(), except: [:my_integer]
-      # Equivalent:
-      # @type option() :: {:my_boolean, boolean()} | {:my_float, float()}
-
-  See `Executive.Schema.option_typespec/2`.
-  """
-  defmacro option_type(name, opts \\ []) do
-    build_option_type(:option_typespec, name, opts)
-  end
-
-  @doc """
-  Builds a type named `name` from schema options.
-
-      option :my_float, :float
-      option :my_integer, :integer
-      option :my_uuid, :uuid
-
-      option_type options()
-      # Equivalent:
-      # @type options() :: [
-      #         my_float: float(),
-      #         my_integer: integer(),
-      #         my_uuid: <<_::288>>
-      #       ]
-
-  Supports options `:only` and `:except`.
-
-      option :my_boolean, :boolean
-      option :my_enum, {:enum, [:enabled, :disabled]}
-      option :my_string, :string
-
-      option_type options(), only: [:my_enum, :my_string]
-      # Equivalent:
-      # @type options() :: [
-      #         my_enum: :enabled | :disabled,
-      #         my_string: String.t()
-      #       ]
-
-  See `Executive.Schema.options_typespec/2`.
-  """
-  defmacro options_type(name, opts \\ []) do
-    build_option_type(:options_typespec, name, opts)
-  end
-
-  @spec build_option_type(:option_typespec | :options_typespec, Macro.t(), Schema.option_filter()) ::
-          Macro.t()
-  defp build_option_type(fun, name, opts) do
-    quote do
-      with_schema(fn schema ->
-        name = unquote(Macro.escape(name))
-        typespec = Executive.Schema.unquote(fun)(schema, unquote(opts))
-
-        quote do
-          @type unquote(name) :: unquote(typespec)
-        end
-      end)
-    end
-  end
-
   @mix_task Application.compile_env(:executive, Mix.Task, Mix.Task)
 
   @doc """
@@ -348,19 +269,7 @@ defmodule Executive.Task do
 
     quote do
       use Mix.Task
-
-      import Executive.Task,
-        only: [
-          option: 2,
-          option: 3,
-          option_type: 1,
-          option_type: 2,
-          options_type: 1,
-          options_type: 2,
-          with_schema: 1,
-          with_schema: 2
-        ]
-
+      import Executive.Task, only: [option: 2, option: 3, with_schema: 1, with_schema: 2]
       @before_compile Executive.Task
       @behaviour Executive.Task
 

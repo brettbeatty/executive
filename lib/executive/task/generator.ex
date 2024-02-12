@@ -7,7 +7,6 @@ defmodule Executive.Task.Generator do
   require EEx
 
   @template_file Application.app_dir(:executive, ["priv", "templates", "task.ex.eex"])
-  @external_resource @template_file
 
   @typedoc """
   This is how options are passed in from `Mix.Tasks.Executive.Gen.Task`.

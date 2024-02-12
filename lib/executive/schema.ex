@@ -70,8 +70,8 @@ defmodule Executive.Schema do
   @doc """
   Build a typespec for an option parsed by `schema`.
 
-  This typespec is in the form of a quoted AST and intended to be used by
-  `Executive.Task.option_type/2`.
+  This typespec is in the form of a quoted AST and intended to be injected using
+  `Executive.Task.with_schema/1`.
 
       iex> Schema.new()
       ...> |> Schema.put_option(:my_integer, :integer)

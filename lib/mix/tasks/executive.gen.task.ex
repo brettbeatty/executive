@@ -72,11 +72,16 @@ defmodule Mix.Tasks.Executive.Gen.Task do
 
   """
   use Executive.Task
+  alias Executive.Schema
   alias Executive.Schema.Option
   alias Executive.Task.Generator
 
-  option_type option()
-  options_type options()
+  with_schema fn schema ->
+    quote do
+      @type option() :: unquote(Schema.option_typespec(schema))
+      @type options() :: unquote(Schema.options_typespec(schema))
+    end
+  end
 
   # type switches
   @optdoc "See `Executive.Types.Base`"

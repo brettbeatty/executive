@@ -11,9 +11,14 @@ defmodule <%= @task_module %> do
 
   """
   use Executive.Task<%= @task_opts %>
+  alias Executive.Schema
 
-  option_type option()
-  options_type options()
+  with_schema fn schema ->
+    quote do
+      @typep option() :: unquote(Schema.option_typespec(schema))
+      @typep options() :: unquote(Schema.options_typespec(schema))
+    end
+  end
 <%= @options %>
   @impl Executive.Task
   def run(argv, opts) do

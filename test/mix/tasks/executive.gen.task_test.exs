@@ -19,9 +19,14 @@ defmodule Mix.Tasks.Executive.Gen.TaskTest do
 
       \"""
       use Executive.Task#{task_opts}
+      alias Executive.Schema
 
-      option_type option()
-      options_type options()
+      with_schema fn schema ->
+        quote do
+          @typep option() :: unquote(Schema.option_typespec(schema))
+          @typep options() :: unquote(Schema.options_typespec(schema))
+        end
+      end
     #{if byte_size(options) > 0, do: "\n" <> options, else: options}
       @impl Executive.Task
       def run(argv, opts) do

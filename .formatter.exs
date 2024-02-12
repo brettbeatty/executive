@@ -2,10 +2,6 @@
 locals_without_parens = [
   option: 2,
   option: 3,
-  option_type: 1,
-  option_type: 2,
-  options_type: 1,
-  options_type: 2,
   with_schema: 1,
   with_schema: 2
 ]

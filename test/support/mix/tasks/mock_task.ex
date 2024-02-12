@@ -25,9 +25,19 @@ defmodule Mix.Tasks.MockTask do
 
   """
   use Executive.Task
+  alias Executive.Schema
 
-  option_type option(), only: [:boolean_switch, :enum_switch, :string_switch]
-  options_type options()
+  with_schema fn schema ->
+    quote do
+      @type option() ::
+              unquote(
+                Schema.option_typespec(schema,
+                  only: [:boolean_switch, :enum_switch, :string_switch]
+                )
+              )
+      @type options() :: unquote(Schema.options_typespec(schema))
+    end
+  end
 
   @optdoc "a base64-encoded binary"
   option :base64_switch, :base64, validate: &validate_base64_switch/1
