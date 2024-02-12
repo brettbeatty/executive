@@ -13,15 +13,12 @@ defmodule Mix.Tasks.Executive.Gen.TaskTest do
 
           $ mix #{task_name}
 
-      \"""
-      use Executive.Task#{task_opts}
-
-      moduledoc_append \"""
       ## Command line options
 
-      \#{Executive.Schema.option_docs(&1)}
+      \#{Executive.Task.option_docs()}
 
       \"""
+      use Executive.Task#{task_opts}
 
       option_type option()
       options_type options()

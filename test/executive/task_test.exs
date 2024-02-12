@@ -48,7 +48,7 @@ defmodule Executive.TaskTest do
     end
   end
 
-  describe "moduledoc_append/2" do
+  describe "option_docs/1 + hook" do
     test "builds docs for options" do
       expected = """
       This is a task that does something.
@@ -70,6 +70,15 @@ defmodule Executive.TaskTest do
       ## I'm Not Sure These Will Get Used
 
         - `--float-switch`, `-f` - float - not a whole number
+
+      ## All Options
+
+        - `--base64-switch` - base 64 string - a base64-encoded binary
+        - `--boolean-switch`, `--no-boolean-switch`, `-b` - boolean - something about the boolean switch
+        - `--enum-switch`, `-e` - enum (alfa, bravo) - behaves differently based on alfa vs bravo
+        - `--float-switch`, `-f` - float - not a whole number
+        - `--integer-switch`, `-i` - integer - any integer will do
+        - `--string-switch`, `-s` - string - some sort of silly string
 
       """
 

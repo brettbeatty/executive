@@ -1,6 +1,5 @@
 # Used by "mix format"
 locals_without_parens = [
-  moduledoc_append: 1,
   option: 2,
   option: 3,
   option_type: 1,

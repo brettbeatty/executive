@@ -7,26 +7,24 @@ defmodule Mix.Tasks.MockTask do
 
       mix mock_task [OPTIONS]
 
-  """
-  use Executive.Task
-
-  moduledoc_append """
   ## Cool Options
 
-  #{Executive.Schema.option_docs(&1, only: [:enum_switch])}
+  #{Executive.Task.option_docs(only: [:enum_switch])}
 
   ## Useful Options
 
-  #{Executive.Schema.option_docs(&1, only: [:string_switch, :integer_switch, :boolean_switch])}
+  #{Executive.Task.option_docs(only: [:string_switch, :integer_switch, :boolean_switch])}
 
-  """
-
-  moduledoc_append """
   ## I'm Not Sure These Will Get Used
 
-  #{Executive.Schema.option_docs(&1, only: [:float_switch])}
+  #{Executive.Task.option_docs(only: [:float_switch])}
+
+  ## All Options
+
+  #{Executive.Task.option_docs()}
 
   """
+  use Executive.Task
 
   option_type option(), only: [:boolean_switch, :enum_switch, :string_switch]
   options_type options()

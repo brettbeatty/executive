@@ -14,9 +14,10 @@ defmodule Executive.Task do
   >     - `option/2` and `option/3`
   >     - `option_type/1` and `option_type/2`
   >     - `options_type/1` and `options_type/2`
-  >     - `with_schema/1`
+  >     - `with_schema/1` and `with_schema/2`
   >   - set `@behaviour Executive.Task`
   >     - this will expect the module to implement `c:Executive.Task.run/2`
+  >   - replaces in `@moduledoc` any calls to `option_docs/1`
 
   Mix tasks built on `Executive.Task` implement `c:Executive.Task.run/2` instead
   of `c:Mix.Task.run/1`.
@@ -40,7 +41,7 @@ defmodule Executive.Task do
 
     - `:start_application` - when true, application is started automatically
 
-      use Executive.Task, start_application: true
+          use Executive.Task, start_application: true
 
   """
   alias Executive.Schema
@@ -53,37 +54,7 @@ defmodule Executive.Task do
   @doc """
   Tasks built with `Executive.Task` implement this instead of `c:Mix.Task.run/1`.
   """
-  @callback run([String.t()], keyword()) :: any()
-
-  @doc """
-  Appends to moduledoc once schema is compiled.
-
-  This macro expects a string interpolating values where the schema is available
-  as `&1` (like the shorthand for an anonymous 1-arity function).
-
-      moduledoc_append \"""
-      ## Basic Options
-
-      \#{Executive.Schema.option_docs(&1, only: [:add, :subtract])}
-
-      ## Advanced Options
-
-      \#{Executive.Schema.option_docs(&1, only: [:multiply, :divide])}
-
-      \"""
-
-  """
-  defmacro moduledoc_append(addendum) do
-    quote do
-      with_schema(fn schema ->
-        addendum = (&unquote(addendum)).(schema)
-
-        quote do
-          @moduledoc @moduledoc <> unquote(addendum)
-        end
-      end)
-    end
-  end
+  @callback run(argv :: [String.t()], opts :: keyword()) :: any()
 
   @doc """
   Puts an option into task's schema.
@@ -99,6 +70,50 @@ defmodule Executive.Task do
         unquote(Macro.escape(opts))
       )
     end
+  end
+
+  @doc """
+  Injects option documentation into module documentation.
+
+  Since the options are not typically compiled before the moduledoc, this
+  function actually generates a string that gets replaced by documentation once
+  all options have been compiled. Moduledocs in modules with a `use
+  Executive.Task` are the only place this value will be replaced.
+
+  By default all options are documented.
+
+      @moduledoc \"""
+      Description of my task.
+
+      ## Command line options
+
+      \#{Executive.Task.option_docs()}
+
+      \"""
+
+  This can also be broken out with the `:only` or `:except` options.
+
+      @moduledoc \"""
+      Description of my task.
+
+      ## Basic options
+
+      \#{Executive.Task.option_docs(only: [:add, :subtract])}
+
+      ## Advanced options
+
+      \#{Executive.Task.option_docs(only: [:multiply, :divide])}
+
+      ## Other options
+
+      \#{Executive.Task.option_docs(except: [:add, :subtract, :multiply, :divide])}
+
+      \"""
+
+  """
+  @spec option_docs(Schema.option_filter()) :: IO.chardata()
+  def option_docs(names \\ []) do
+    ["EXECUTIVE_OPTION_DOCS{", names |> :erlang.term_to_binary() |> Base.encode64(), "}"]
   end
 
   @doc """
@@ -250,6 +265,16 @@ defmodule Executive.Task do
     Module.put_attribute(module, :executive_task_option, {name, type, opts})
   end
 
+  @spec _replace_option_docs(String.t(), Schema.t()) :: String.t()
+  def _replace_option_docs(doc, schema) do
+    Regex.replace(~R/EXECUTIVE_OPTION_DOCS{([a-zA-Z0-9+\/]+={0,3})}/, doc, fn _full, opts ->
+      opts
+      |> Base.decode64!()
+      |> :erlang.binary_to_term()
+      |> then(&Schema.option_docs(schema, &1))
+    end)
+  end
+
   @spec _run(t(), Schema.t(), [String.t()]) :: any()
   def _run(module, schema, argv) do
     {argv, opts} = Schema.parse!(schema, argv)
@@ -326,7 +351,6 @@ defmodule Executive.Task do
 
       import Executive.Task,
         only: [
-          moduledoc_append: 1,
           option: 2,
           option: 3,
           option_type: 1,
@@ -339,6 +363,14 @@ defmodule Executive.Task do
 
       @before_compile Executive.Task
       @behaviour Executive.Task
+
+      with_schema fn schema ->
+        if doc = @moduledoc do
+          quote do
+            @moduledoc unquote(Executive.Task._replace_option_docs(doc, schema))
+          end
+        end
+      end
 
       with_schema :ast, fn schema ->
         setup = unquote(Macro.escape(setup))

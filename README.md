@@ -43,15 +43,12 @@ defmodule Mix.Tasks.SomeOtherThing.Do do
 
       $ mix some_other_thing.do
 
-  """
-  use Executive.Task
-
-  moduledoc_append """
   ## Command line options
 
-  #{Executive.Schema.option_docs(&1)}
+  #{Executive.Task.option_docs()}
 
   """
+  use Executive.Task
 
   option_type option()
   options_type options()

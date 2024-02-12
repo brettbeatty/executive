@@ -10,20 +10,30 @@ defmodule Mix.Tasks.Executive.Gen.Task do
   Options can be passed in using type switches followed by the option name and a
   number of modifier switches.
 
-  """
-  use Executive.Task
-  import Executive.Schema, only: [option_docs: 2]
-  alias Executive.Schema.Option
-  alias Executive.Task.Generator
-
-  moduledoc_append """
   ## Type switches
 
   Each of these switches takes a name string and adds an option with that name
   to the generated task. The type of the option is the
   [alias](`t:Executive.Type.alias/0`) of the same name as the switch.
 
-  #{option_docs(&1, only: [:base16, :base32, :base64, :boolean, :date, :datetime, :float, :integer, :naive_datetime, :neg_integer, :non_neg_integer, :pos_integer, :string, :time, :uri, :uuid])}
+  #{Executive.Task.option_docs(only: ~W[
+    base16
+    base32
+    base64
+    boolean
+    date
+    datetime
+    float
+    integer
+    naive_datetime
+    neg_integer
+    non_neg_integer
+    pos_integer
+    string
+    time
+    uri
+    uuid
+  ]a)}
 
   Running the following task
 
@@ -40,7 +50,7 @@ defmodule Mix.Tasks.Executive.Gen.Task do
   `t:Executive.Option.opts/0` and is described in greater detail in the docs for
   `Executive.Schema.put_option/4`.
 
-  #{option_docs(&1, only: [:alias, :doc, :required, :unique])}
+  #{Executive.Task.option_docs(only: [:alias, :doc, :required, :unique])}
 
   Running the following task
 
@@ -58,9 +68,12 @@ defmodule Mix.Tasks.Executive.Gen.Task do
 
   These switches apply to the entire generated task, not a particular option.
 
-  #{option_docs(&1, only: [:start_application])}
+  #{Executive.Task.option_docs(only: [:start_application])}
 
   """
+  use Executive.Task
+  alias Executive.Schema.Option
+  alias Executive.Task.Generator
 
   option_type option()
   options_type options()
